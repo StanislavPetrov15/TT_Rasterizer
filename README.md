@@ -1,4 +1,4 @@
-(TERMINOLOGY (specific to TT_Rasterizer))
+TERMINOLOGY (specific to TT_Rasterizer)
 
    - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
    - (segmentoid) :: begin/end pixel of a segment
