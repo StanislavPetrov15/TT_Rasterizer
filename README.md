@@ -111,12 +111,15 @@ USAGE EXAMPLE
     std::wstring filepath = L"<font.ttf>"; //replace with real font path
    
     _wfopen_s(&file, filepath.c_str(), L"rb");
-   
+
+    int canvasWidth = 1000;
+    int canvasWidth = 800;
+    
     TT_Parser::Font* font = TT_Parser::ParseFont(file);
 
-    TT_Canvas = new unsigned char[WindowWidth * WindowHeight * 4];
+    TT_Canvas = new unsigned char[canvasWidth * canvasHeight * 4];
 
-    for (int i = 0; i < WindowWidth * WindowHeight * 4; i++)
+    for (int i = 0; i < canvasWidth * canvasHeight * 4; i++)
     {
         TT_Canvas[i] = 255;
     }
@@ -126,8 +129,8 @@ USAGE EXAMPLE
        font,
        TT_Canvas,
        TT_Rasterizer::ColorComponentOrder::BGRA,
-       WindowWidth,
-       WindowHeight,
+       canvasWidth,
+       canvasHeight,
        20, //x (in pixels)
        20, //y (in pixels)
        100, //size (in pixels)
