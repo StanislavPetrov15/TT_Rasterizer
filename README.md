@@ -117,11 +117,8 @@ USAGE EXAMPLE
     TT_Canvas = new unsigned char[WindowWidth * WindowHeight * 4];
 
     for (int i = 0; i < WindowWidth * WindowHeight * 4; i++)
-   
     {
-    
         TT_Canvas[i] = 255;
-    
     }
 
    TT_Rasterizer::DrawString(
