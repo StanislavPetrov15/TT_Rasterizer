@@ -107,8 +107,10 @@ PUBLIC API
 USAGE EXAMPLE
 
    FILE* file = nullptr;
+   
    std::wstring filepath = L"<font.ttf>"; //replace with real font path
    _wfopen_s(&file, filepath.c_str(), L"rb");
+   
    TT_Font* font = TT_Parser::ParseFont(file);
 
    TT_Rasterizer::DrawString(
