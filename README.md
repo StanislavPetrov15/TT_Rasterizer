@@ -107,12 +107,22 @@ PUBLIC API
 USAGE EXAMPLE
 
    FILE* file = nullptr;
-   
+  
    std::wstring filepath = L"<font.ttf>"; //replace with real font path
    
    _wfopen_s(&file, filepath.c_str(), L"rb");
    
-   TT_Font* font = TT_Parser::ParseFont(file);
+   TT_Parser::Font* font = TT_Parser::ParseFont(file);
+
+    TT_Canvas = new unsigned char[WindowWidth * WindowHeight * 4];
+
+    for (int i = 0; i < WindowWidth * WindowHeight * 4; i++)
+   
+    {
+    
+        TT_Canvas[i] = 255;
+    
+    }
 
    TT_Rasterizer::DrawString(
        L"Example string",
@@ -121,6 +131,14 @@ USAGE EXAMPLE
        TT_Rasterizer::ColorComponentOrder::BGRA,
        WindowWidth,
        WindowHeight,
+       20, //x (in pixels)
+       20, //y (in pixels)
+       100, //size (in pixels)
+       TT_Rasterizer::Colors.CornflowerBlue);
+
+  delete TT_Canvas;
+  
+  delete font;
        20, //x (in pixels)
        20, //y (in pixels)
        100, //size (in pixels)
