@@ -104,7 +104,15 @@ PUBLIC API
     - GetGraphemicWidth()
     - GetGraphemicHeight()
 
-USAGE EXAMPLE
+USAGE EXAMPLE 
+
+    it's not a complete working example; you must visualize the canvas on the screen with additional code 
+
+    #include <Windows.h> 
+    #include <functional>
+    #include <string>
+    #include "TT_Parser.cpp"
+    #include "TT_Rasterizer.cpp"
 
     FILE* file = nullptr;
   
