@@ -33,7 +33,7 @@ TERMINOLOGY (specific to TT_Rasterizer)
        (2) when applied to a character string, it means the distance between the highest and lowest graphemic points of the string
    - (graphema) all the graphemic pixels for (a contour or a glyph), i.e. the visual representation of (a contour or a glyph) on the screen
 
-(GENERAL NOTES)
+GENERAL NOTES
 
   - the library does not depend on third-party code; it depends only on few functions in the C++ standard library
 
@@ -85,7 +85,7 @@ TERMINOLOGY (specific to TT_Rasterizer)
         (*) for most real-world characters it will be no more than 1MB, as they will be much smaller
       - also the library makes a copy of the currently used font in the memory; very few fonts are very big though (over 10 MB)
 
-(PUBLIC API)
+PUBLIC API
 
   - TT_Parser.cpp:
     - GetTable()
@@ -104,7 +104,7 @@ TERMINOLOGY (specific to TT_Rasterizer)
     - GetGraphemicWidth()
     - GetGraphemicHeight()
 
-(USAGE EXAMPLE)
+USAGE EXAMPLE
 
    FILE* file = nullptr;
    std::wstring filepath = L"<font.ttf>"; //replace with real font path
