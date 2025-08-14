@@ -88,22 +88,88 @@ GENERAL NOTES
 PUBLIC API
 
   - TT_Parser.cpp:
-    - GetTable()
-    - ExtractSimpleGlyph()
-    - ParseFont()
-    - GetGlyphIndex()
-    - GetLeftSideBearing()
-    - GetRightSideBearing()
-    - GetAdvanceWidth()
-    - GetKerning()
-    - GetGlyph()
+
+    void* GetTable(const Font* _font, short _identifier)
+    Font* ParseFont(FILE* _file)
+    int GetGlyphIndex(const Font* _font, int _codepoint)
+    int GetLeftSideBearing(const Font* _font, int _characterCode)
+    int GetRightSideBearing(const Font* _font, int _codepoint)
+    double GetAscent(TT_Parser::Font* _font, int _codepoint)
+    double GetAscent(TT_Parser::Font* _font, const std::wstring& _string)
+    double GetDescent(TT_Parser::Font* _font, const int _codepoint)
+    double GetDescent(TT_Parser::Font* _font, const std::wstring& _string)
+    int GetAdvanceWidth(const Font* _font, int _characterCode)
+    int GetKerning(const Font* _font, int _codepoint1, int _codepoint2)
+    void* GetGlyph(const Font* _font, int _characterIndex)
 
   - TT_Rasterizer.cpp:
-    - DrawCharacter()
-    - DrawString()
-    - GetGraphemicWidth()
-    - GetGraphemicHeight()
 
+    void DrawCharacter(
+            int _characterIndex,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            unsigned char _characterR,
+            unsigned char _characterG,
+            unsigned char _characterB,
+            void* _glyph = nullptr,
+            double _composite_X_Offset = 0.0,
+            double _composite_Y_Offset = 0.0,
+            double _composite_X_Scale = 0.0,
+            double _composite_Y_Scale = 0.0)
+
+    void DrawCharacter(
+            int _characterIndex,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            RGBA _characterColor,
+            void* _glyph = nullptr)
+    
+    void DrawString(
+            const std::wstring& _string,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            unsigned char _textR,
+            unsigned char _textG,
+            unsigned char _textB)
+
+     void DrawString(
+            const std::wstring& _string,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            RGBA _textColor)
+
+     double GetGraphemicWidth(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
+
+     double GetGraphemicHeight(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
+
+     double GetGraphemicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+
+     double GetGraphemicHeight(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+    
 USAGE EXAMPLE 
 
     it's not a complete working example; you must visualize the canvas on the screen with additional code 
