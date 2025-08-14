@@ -186,8 +186,8 @@ USAGE EXAMPLE
    
     _wfopen_s(&file, filepath.c_str(), L"rb");
 
-    int canvasWidth = 1000;
-    int canvasWidth = 800;
+    int canvasWidth = <N>;
+    int canvasWidth = <N>;
     
     TT_Parser::Font* font = TT_Parser::ParseFont(file);
 
