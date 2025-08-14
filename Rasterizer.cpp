@@ -2199,10 +2199,6 @@ namespace TT_Rasterizer
             //for every contour
             for (int contourIndex = 0; contourIndex < numberOfContours; contourIndex++)
             {
-                int minX = -1;
-                int minY = -1;
-                int maxX = -1;
-                int maxY = -1;
                 PreviousPixelX = -1;
                 PreviousPixelY = -1;
 
@@ -3014,34 +3010,6 @@ namespace TT_Rasterizer
                     else
                     {
                         MetaCanvas_S1[position] = coverage;
-                    }
-
-                    if (minX == -1)
-                    {
-                        minX = currentPixelMinX;
-                        maxX = currentPixelMinX;
-                    }
-                    else if (currentPixelMinX < minX)
-                    {
-                        minX = currentPixelMinX;
-                    }
-                    else if (currentPixelMaxX > maxX)
-                    {
-                        maxX = currentPixelMinX;
-                    }
-
-                    if (minY == -1)
-                    {
-                        minY = currentPixelMinY;
-                        maxY = currentPixelMinY;
-                    }
-                    else if (currentPixelMinY < minY)
-                    {
-                        minY = currentPixelMinY;
-                    }
-                    else if (currentPixelMaxY > maxY)
-                    {
-                        maxY = currentPixelMinY;
                     }
 
                     PreviousPixelX = currentPixelMinX;
