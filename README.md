@@ -133,7 +133,6 @@ USAGE EXAMPLE
        100, //size (in pixels)
        TT_Rasterizer::Colors.CornflowerBlue);
 
-   delete TT_Canvas;
-  
-   delete font;
+    delete TT_Canvas;
+    delete font;
 
