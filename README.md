@@ -191,7 +191,7 @@ USAGE EXAMPLE
     
     TT_Parser::Font* font = TT_Parser::ParseFont(file);
 
-    TT_Canvas = new unsigned char[canvasWidth * canvasHeight * 4];
+    unsigned char TT_Canvas = new unsigned char[canvasWidth * canvasHeight * 4];
 
     for (int i = 0; i < canvasWidth * canvasHeight * 4; i++)
     {
