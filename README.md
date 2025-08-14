@@ -106,13 +106,13 @@ PUBLIC API
 
 USAGE EXAMPLE
 
-   FILE* file = nullptr;
+    FILE* file = nullptr;
   
-   std::wstring filepath = L"<font.ttf>"; //replace with real font path
+    std::wstring filepath = L"<font.ttf>"; //replace with real font path
    
-   _wfopen_s(&file, filepath.c_str(), L"rb");
+    _wfopen_s(&file, filepath.c_str(), L"rb");
    
-   TT_Parser::Font* font = TT_Parser::ParseFont(file);
+    TT_Parser::Font* font = TT_Parser::ParseFont(file);
 
     TT_Canvas = new unsigned char[WindowWidth * WindowHeight * 4];
 
@@ -121,7 +121,7 @@ USAGE EXAMPLE
         TT_Canvas[i] = 255;
     }
 
-   TT_Rasterizer::DrawString(
+    TT_Rasterizer::DrawString(
        L"Example string",
        font,
        TT_Canvas,
@@ -133,12 +133,7 @@ USAGE EXAMPLE
        100, //size (in pixels)
        TT_Rasterizer::Colors.CornflowerBlue);
 
-  delete TT_Canvas;
+   delete TT_Canvas;
   
-  delete font;
-       20, //x (in pixels)
-       20, //y (in pixels)
-       100, //size (in pixels)
-       TT_Rasterizer::Colors.CornflowerBlue);
+   delete font;
 
-  delete font;
