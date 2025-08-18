@@ -1,38 +1,3 @@
-TERMINOLOGY (specific to TT_Rasterizer)
-
-   - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
-   - (segmentoid) :: begin/end pixel of a segment
-   - (segmentonom) :: intermediate pixel (between two segmentoids)
-   - (vertexoid) :: the begin/end point a segment
-   - (conturoid) :: a pixel that is crossed by a contour, i.e. a segmentoid or a segmentonom
-   - (exteroid) :: exterior pixel; a pixel that is not part of the currently drawn character
-   - (interoid) :: interior pixel; a pixel that is a part of the currently drawn character
-   - (f-conturoid) :: a conturoid that is part of filled contour
-   - (n-conturoid) :: a conturoid that is part of non-filled contour
-   - (delta-point | delta) :: a point that traverses the glyph contour
-   - (samplex) :: a position of a delta-point at given moment in time
-   - (entering samplex) :: the first samplex (chronologically) in a pixel, i.e. the first delta-value for the particular pixel
-   - (exiting samplex) :: the last samplex (chronologically) in a pixel, i.e. the last delta-value for the particular pixel
-   - (terminating segmentonom) :: a segmentonom that is the last pixel in a fill-sequence
-   - (terminating segmentoid) :: a segmentoid that is the last pixel in a fill-sequence
-   - (corner-crossing) :: crossing in which delta only crosses the corner region, i.e. a crossing in which there is only samplex -
-       this samplex is always in one of the corners of the pixel
-   - (fully-crossed pixel) :: a pixel that is traversed from one side to the side parallel to it (from left to right, bottom to top, etc)
-   - (typographic width) ::
-       (1) when applied to a single character, it means the width of the character with (the left-side bearing) and (the right-side bearing)
-       (2) when applied to a character string, it means the width of the string with (the left-side bearing of the first character)
-           and (the right-side bearing of the last character)
-   - (graphemic pixels) :: the pixels of (a contour or a glyph) that are either contour or interior pixels
-   - (graphemic width) ::
-       (1) when applied to a single character, it means the width of the character without (the left-side bearing) and (the right-side bearing),
-           i.e. the distance between the left-most and right-most graphemic points of the character
-       (2) when applied to a character string, it means the width of the string without (the left-side bearing of the first character)
-           and (the right-side bearing of the last character), i.e. the distance between the left-most and right-most graphemic points of the string
-   - (graphemic height) ::
-       (1) when applied to a single character, it means the distance between the highest and lowest point of the character
-       (2) when applied to a character string, it means the distance between the highest and lowest graphemic points of the string
-   - (graphema) all the graphemic pixels for (a contour or a glyph), i.e. the visual representation of (a contour or a glyph) on the screen
-
 GENERAL NOTES
 
   - the library does not depend on third-party code; it depends only on few functions in the C++ standard library
@@ -211,5 +176,42 @@ USAGE EXAMPLE
        TT_Rasterizer::Colors.CornflowerBlue);
 
     delete TT_Canvas;
+ 
+TERMINOLOGY (specific to TT_Rasterizer)
+
+   - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
+   - (segmentoid) :: begin/end pixel of a segment
+   - (segmentonom) :: intermediate pixel (between two segmentoids)
+   - (vertexoid) :: the begin/end point a segment
+   - (conturoid) :: a pixel that is crossed by a contour, i.e. a segmentoid or a segmentonom
+   - (exteroid) :: exterior pixel; a pixel that is not part of the currently drawn character
+   - (interoid) :: interior pixel; a pixel that is a part of the currently drawn character
+   - (f-conturoid) :: a conturoid that is part of filled contour
+   - (n-conturoid) :: a conturoid that is part of non-filled contour
+   - (delta-point | delta) :: a point that traverses the glyph contour
+   - (samplex) :: a position of a delta-point at given moment in time
+   - (entering samplex) :: the first samplex (chronologically) in a pixel, i.e. the first delta-value for the particular pixel
+   - (exiting samplex) :: the last samplex (chronologically) in a pixel, i.e. the last delta-value for the particular pixel
+   - (terminating segmentonom) :: a segmentonom that is the last pixel in a fill-sequence
+   - (terminating segmentoid) :: a segmentoid that is the last pixel in a fill-sequence
+   - (corner-crossing) :: crossing in which delta only crosses the corner region, i.e. a crossing in which there is only samplex -
+       this samplex is always in one of the corners of the pixel
+   - (fully-crossed pixel) :: a pixel that is traversed from one side to the side parallel to it (from left to right, bottom to top, etc)
+   - (typographic width) ::
+       (1) when applied to a single character, it means the width of the character with (the left-side bearing) and (the right-side bearing)
+       (2) when applied to a character string, it means the width of the string with (the left-side bearing of the first character)
+           and (the right-side bearing of the last character)
+   - (graphemic pixels) :: the pixels of (a contour or a glyph) that are either contour or interior pixels
+   - (graphemic width) ::
+       (1) when applied to a single character, it means the width of the character without (the left-side bearing) and (the right-side bearing),
+           i.e. the distance between the left-most and right-most graphemic points of the character
+       (2) when applied to a character string, it means the width of the string without (the left-side bearing of the first character)
+           and (the right-side bearing of the last character), i.e. the distance between the left-most and right-most graphemic points of the string
+   - (graphemic height) ::
+       (1) when applied to a single character, it means the distance between the highest and lowest point of the character
+       (2) when applied to a character string, it means the distance between the highest and lowest graphemic points of the string
+   - (graphema) all the graphemic pixels for (a contour or a glyph), i.e. the visual representation of (a contour or a glyph) on the screen
+
+
     delete font;
 
