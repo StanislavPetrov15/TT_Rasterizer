@@ -3304,7 +3304,8 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic pixel in the canvas; it can be negative or positive value
     //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
     //_fontSize is the height of the line (not the actual character) in pixels
-    //the font contains glyph that represents the specified the codepoint ->
+    //_glyph is a TT_Parser::SimpleGlyph or TT_Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
+    //(REQUIREMENT) the font must contain the glyph that is represented by the specified _characterIndex value (if set)
     void DrawCharacter(
             int _characterIndex,
             TT_Parser::Font* _font,
