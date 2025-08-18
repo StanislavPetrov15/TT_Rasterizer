@@ -139,44 +139,44 @@ USAGE EXAMPLE
 
     it's not a complete working example; you must visualize the canvas on the screen with additional code 
 
-      #include <Windows.h> 
-      #include <functional>
-      #include <string>
-      #include "TT_Parser.cpp"
-      #include "TT_Rasterizer.cpp"
-  
-      FILE* file = nullptr;
+        #include <Windows.h> 
+        #include <functional>
+        #include <string>
+        #include "TT_Parser.cpp"
+        #include "TT_Rasterizer.cpp"
     
-      std::wstring filepath = L"<font.ttf>"; //replace with real font path
-     
-      _wfopen_s(&file, filepath.c_str(), L"rb");
-  
-      int canvasWidth = <N>;
-      int canvasWidth = <N>;
+        FILE* file = nullptr;
       
-      TT_Parser::Font* font = TT_Parser::ParseFont(file);
+        std::wstring filepath = L"<font.ttf>"; //replace with real font path
+       
+        _wfopen_s(&file, filepath.c_str(), L"rb");
+    
+        int canvasWidth = <N>;
+        int canvasWidth = <N>;
+        
+        TT_Parser::Font* font = TT_Parser::ParseFont(file);
+    
+        unsigned char TT_Canvas = new unsigned char[canvasWidth * canvasHeight * 4];
+    
+        for (int i = 0; i < canvasWidth * canvasHeight * 4; i++)
+        {
+            TT_Canvas[i] = 255;
+        }
+    
+        TT_Rasterizer::DrawString(
+           L"Example string",
+           font,
+           TT_Canvas,
+           TT_Rasterizer::ColorComponentOrder::BGRA,
+           canvasWidth,
+           canvasHeight,
+           20, //x (in pixels)
+           20, //y (in pixels)
+           100, //size (in pixels)
+           TT_Rasterizer::Colors.CornflowerBlue);
   
-      unsigned char TT_Canvas = new unsigned char[canvasWidth * canvasHeight * 4];
-  
-      for (int i = 0; i < canvasWidth * canvasHeight * 4; i++)
-      {
-          TT_Canvas[i] = 255;
-      }
-  
-      TT_Rasterizer::DrawString(
-         L"Example string",
-         font,
-         TT_Canvas,
-         TT_Rasterizer::ColorComponentOrder::BGRA,
-         canvasWidth,
-         canvasHeight,
-         20, //x (in pixels)
-         20, //y (in pixels)
-         100, //size (in pixels)
-         TT_Rasterizer::Colors.CornflowerBlue);
-
-      delete Font;
-      delete TT_Canvas;
+        delete Font;
+        delete TT_Canvas;
    
 TERMINOLOGY (specific to TT_Rasterizer)
 
