@@ -1943,8 +1943,18 @@ namespace TT_Rasterizer
         {
             TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
             TT_Parser::HHEA_Table* hhea = reinterpret_cast<TT_Parser::HHEA_Table*>(GetTable(_font, TT_Parser::HHEA_TABLE));
-            int lsb = TT_Parser::GetLeftSideBearing(_font, _characterIndex);
 
+            int lsb;
+
+            if (_glyph != nullptr)
+            {
+                lsb = glyph_->MinX; //(C)
+            }
+            else
+            {
+                lsb = TT_Parser::GetLeftSideBearing(_font, _characterIndex);
+            }
+            
             ///CONTOUR REORDERING
 
             int numberOfContours = glyph_->NumberOfContours;
@@ -2187,7 +2197,7 @@ namespace TT_Rasterizer
             double fx_shift = _horizontalPosition - RoundDown(_horizontalPosition);
             double fy_shift = _verticalPosition - RoundDown(_verticalPosition);
 
-            /* (t:SimpleGlyph : MinX, MinY, MaxX, MaxY) cannot be used here as there are errors (it seems) in some fonts - for example
+            /* (C) (t:SimpleGlyph : MinX, MinY, MaxX, MaxY) cannot be used here as there are errors (it seems) in some fonts - for example
                yMin in (DejaVuSans index 3013) does not correspond to the real lowest Y value */
             MetaCanvasWidth = RoundUp(((highestX - lowestX) * SCALE)) + 1;
             MetaCanvasHeight = RoundUp((highestY - lowestY) * SCALE) + 1;
