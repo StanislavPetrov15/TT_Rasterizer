@@ -3555,7 +3555,8 @@ namespace TT_Rasterizer
     //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
     //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
     //_canvasWidth and _canvasHeight are the width and height of the canvas specified in pixels
-    //_horizonalPosition and _verticalPosition specify (the position (in pixels) of the glyph) in the canvas 
+    //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
+    //_verticalPosition specifies the position (in pixels) of the baseline
     //_fontSize is the height of the line in pixels
     //the font contains glyph that represents the specified the codepoint ->
     void DrawString(
@@ -3636,7 +3637,8 @@ namespace TT_Rasterizer
     //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
     //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
     //_canvasWidth and _canvasHeight are the width and height of the canvas specified in pixels
-    //_horizonalPosition and _verticalPosition specify (the position (in pixels) of the glyph) in the canvas
+    //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
+    //_verticalPosition specifies the position (in pixels) of the baseline
     //_fontSize is the height of the line in pixels
     //the font contains glyph that represents the specified the codepoint ->
     void DrawString(
