@@ -3551,11 +3551,11 @@ namespace TT_Rasterizer
     }
 
     //(PUBLIC)
-    //_data is (a RGBA or BGRA pixel array) in which the character is drawn
+    //_canvas is (a RGBA or BGRA pixel array) in which the character is drawn
     //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
-    //_colorComponentOrder specifies if the pixels in _data are RGBA or BGRA
-    //_canvasWidth and _canvasHeight are the width and height of the canvas(i.e. _data) specified in pixels
-    //_horizonalPosition and _verticalPosition specify (the position (in pixels) of the glyph) in the canvas (i.e. _data)
+    //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
+    //_canvasWidth and _canvasHeight are the width and height of the canvas specified in pixels
+    //_horizonalPosition and _verticalPosition specify (the position (in pixels) of the glyph) in the canvas 
     //_fontSize is the height of the line in pixels
     //the font contains glyph that represents the specified the codepoint ->
     void DrawString(
@@ -3632,11 +3632,11 @@ namespace TT_Rasterizer
     }
 
     //(PUBLIC)
-    //_data is (a RGBA or BGRA pixel array) in which the character is drawn
+    //_canvas is (a RGBA or BGRA pixel array) in which the character is drawn
     //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
-    //_colorComponentOrder specifies if the pixels in _data are RGBA or BGRA
-    //_canvasWidth and _canvasHeight are the width and height of the canvas(i.e. _data) specified in pixels
-    //_horizonalPosition and _verticalPosition specify (the position (in pixels) of the glyph) in the canvas (i.e. _data)
+    //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
+    //_canvasWidth and _canvasHeight are the width and height of the canvas specified in pixels
+    //_horizonalPosition and _verticalPosition specify (the position (in pixels) of the glyph) in the canvas
     //_fontSize is the height of the line in pixels
     //the font contains glyph that represents the specified the codepoint ->
     void DrawString(
