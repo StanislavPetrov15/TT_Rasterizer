@@ -1,10 +1,6 @@
 #include <Windows.h>
 #include <functional>
 #include <string>
-#include <chrono>
-#include <thread>
-#include "event.cpp"
-#include "timer.cpp"
 #include "Parser.cpp"
 #include "Rasterizer.cpp"
 
