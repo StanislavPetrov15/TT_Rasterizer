@@ -32,6 +32,7 @@ namespace TT_Rasterizer
     int MetaCanvasHeight;
     int PreviousPixelX;
     int PreviousPixelY;
+    int MaxStringX; //(INTERNAL) X coordinate int the canvas (not an X coordinate in the string itself)
 
     /* two-stage drawing is needed (first in a meta-canvas byte array, then in the real canvas); this allows drawing over non-uniform background (
        consisting of many different colors) and also allows proper drawing of certain characters - for example Unicode codepoint Dx295 in
@@ -1881,7 +1882,7 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the left border of the EM-square; it can be negative or positive value
     //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
     //_fontSize is the height of the line (not the actual character) in pixels
-    //_glyph is a TT_Parser::SimpleGlyph or TT_Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
+	//_glyph is a Parser::SimpleGlyph or Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
     //(REQUIREMENT) the font must contain the glyph that is represented by the specified _characterIndex value (if set)
     void DrawCharacter(
             int _characterIndex,
@@ -1897,10 +1898,10 @@ namespace TT_Rasterizer
             unsigned char _characterG,
             unsigned char _characterB,
             void* _glyph = nullptr,
-            double _composite_X_Offset = 0.0,
-            double _composite_Y_Offset = 0.0,
-            double _composite_X_Scale = 0.0,
-            double _composite_Y_Scale = 0.0)
+            double _composite_X_Offset = 0.0, //(INTERNAL)
+            double _composite_Y_Offset = 0.0, //(INTERNAL)
+            double _composite_X_Scale = 0.0, //(INTERNAL)
+            double _composite_Y_Scale = 0.0) //(INTERNAL)
     {
 #if APPEND_DEBUG_INFO == 1
         const char* conturoidsPath = concatenate_string(DEBUG_INFO_PATH, "Conturoids.txt", strlen(DEBUG_INFO_PATH), 14);
@@ -1943,8 +1944,8 @@ namespace TT_Rasterizer
         {
             TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
             TT_Parser::HHEA_Table* hhea = reinterpret_cast<TT_Parser::HHEA_Table*>(GetTable(_font, TT_Parser::HHEA_TABLE));
-
-            int lsb;
+         
+		    int lsb;
 
             if (_glyph != nullptr)
             {
@@ -1954,7 +1955,7 @@ namespace TT_Rasterizer
             {
                 lsb = TT_Parser::GetLeftSideBearing(_font, _characterIndex);
             }
-            
+			
             ///CONTOUR REORDERING
 
             int numberOfContours = glyph_->NumberOfContours;
@@ -2387,7 +2388,6 @@ namespace TT_Rasterizer
                                 coverage, but the smaller distance ofcourse also means that more semplices will be calculated
                                 for each pixel and therefore that will reflect in lower performance */
 
-                        //(NEED-DIAGRAM)
                         /* (B) check whether a (horizontal or vertical shift) of (the begin and end vertices) is needed;
                            this shift is needed in some cases because of the fundamental errors in the calculations with the type 'double'
                            that could generate wave-like/zig-zag movement of the delta point; if the begin and end vertices form
@@ -2606,7 +2606,6 @@ namespace TT_Rasterizer
                                     unsigned int coverage = CoverageOf(enteringSamplex, Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY),
                                                                        contour.IsFilled, _characterIndex);
 
-                                    //(NEED-DIAGRAM)
                                     //if the segmentonom is already crossed once (i.e. this is a +1 crossing)
                                     if (marker_ != 0 && marker_ != INITIAL_PIXEL_MARKER)
                                     {
@@ -2944,8 +2943,7 @@ namespace TT_Rasterizer
                                     int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
                                     unsigned int marker = MetaCanvas_S1[position];
-
-                                    //(NEED-DIAGRAM)
+                                    
                                     //if the segmentonom is already crossed once (i.e. this is a +1 crossing)
                                     if (marker != 0 && marker != INITIAL_PIXEL_MARKER)
                                     {
@@ -3161,6 +3159,11 @@ namespace TT_Rasterizer
                     int targetRow = _verticalPosition + row;
 
                     if (targetColumn < 0 || targetColumn >= _canvasWidth || targetRow < 0 || targetRow >= _canvasHeight)
+                    {
+                        continue;
+                    }
+
+                    if (MaxStringX != -1 && targetColumn >= MaxStringX)
                     {
                         continue;
                     }
@@ -3570,7 +3573,9 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
     //_verticalPosition specifies the position (in pixels) of the baseline
     //_fontSize is the height of the line in pixels
-    //the font contains glyph that represents the specified the codepoint ->
+    //_maxStringX is a coordinate in the canvas (not an X coordinate in the string itself)
+    /*_maxStringX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
+       string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit */
     void DrawString(
             const std::wstring& _string,
             TT_Parser::Font* _font,
@@ -3583,8 +3588,11 @@ namespace TT_Rasterizer
             double _fontSize,
             unsigned char _textR,
             unsigned char _textG,
-            unsigned char _textB)
+            unsigned char _textB,
+            int _maxStringX = -1)
     {
+        MaxStringX = _maxStringX;
+
         double SCALE = GetScale(_font, _fontSize);
         TT_Parser::HHEA_Table* hhea = reinterpret_cast<TT_Parser::HHEA_Table*>(GetTable(_font, TT_Parser::HHEA_TABLE));
         TT_Parser::OS2_Table* OS2 = reinterpret_cast<TT_Parser::OS2_Table*>(GetTable(_font, TT_Parser::OS2_TABLE));
@@ -3652,7 +3660,8 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
     //_verticalPosition specifies the position (in pixels) of the baseline
     //_fontSize is the height of the line in pixels
-    //the font contains glyph that represents the specified the codepoint ->
+    /*_maxStringX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
+       string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit */
     void DrawString(
             const std::wstring& _string,
             TT_Parser::Font* _font,
@@ -3663,9 +3672,10 @@ namespace TT_Rasterizer
             double _horizontalPosition,
             double _verticalPosition,
             double _fontSize,
-            RGBA _textColor)
+            RGBA _textColor,
+            int _maxStringX = -1)
     {
         DrawString(_string, _font, _canvas, _colorComponentOrder, _canvasWidth, _canvasHeight, _horizontalPosition, _verticalPosition,
-                   _fontSize, _textColor.R, _textColor.G, _textColor.B);
+                   _fontSize, _textColor.R, _textColor.G, _textColor.B, _maxStringX);
     }
 }
