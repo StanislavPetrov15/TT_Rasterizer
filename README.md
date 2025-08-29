@@ -113,7 +113,8 @@ PUBLIC API
                double _fontSize,
                unsigned char _textR,
                unsigned char _textG,
-               unsigned char _textB)
+               unsigned char _textB,
+               int _maxStringX = -1)
    
         void DrawString(
                const std::wstring& _string,
@@ -125,7 +126,8 @@ PUBLIC API
                double _horizontalPosition,
                double _verticalPosition,
                double _fontSize,
-               RGBA _textColor)
+               RGBA _textColor,
+               int _maxStringX = -1)
    
         double GetGraphemicWidth(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
 
@@ -134,6 +136,8 @@ PUBLIC API
         double GetGraphemicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
    
         double GetGraphemicHeight(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+
+        double GetTypographicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
     
 USAGE EXAMPLE 
 
