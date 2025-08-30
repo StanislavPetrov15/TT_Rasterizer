@@ -69,65 +69,67 @@ PUBLIC API
 
   - TT_Rasterizer.cpp:
 
-        void DrawCharacter(
-               int _characterIndex,
-               TT_Parser::Font* _font,
-               unsigned char* _canvas,
-               ColorComponentOrder _colorComponentOrder,
-               int _canvasWidth,
-               int _canvasHeight,
-               double _horizontalPosition,
-               double _verticalPosition,
-               double _fontSize,
-               unsigned char _characterR,
-               unsigned char _characterG,
-               unsigned char _characterB,
-               void* _glyph = nullptr,
-               double _composite_X_Offset = 0.0,
-               double _composite_Y_Offset = 0.0,
-               double _composite_X_Scale = 0.0,
-               double _composite_Y_Scale = 0.0)
+       void DrawCharacter(
+            int _characterIndex,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            unsigned char _characterR,
+            unsigned char _characterG,
+            unsigned char _characterB,
+            void* _glyph = nullptr,
+            double _composite_X_Offset = 0.0, //(INTERNAL)
+            double _composite_Y_Offset = 0.0, //(INTERNAL)
+            double _composite_X_Scale = 0.0, //(INTERNAL)
+            double _composite_Y_Scale = 0.0, //(INTERNAL)
+            int _maxGraphemicX = -1)
 
         void DrawCharacter(
-               int _characterIndex,
-               TT_Parser::Font* _font,
-               unsigned char* _canvas,
-               ColorComponentOrder _colorComponentOrder,
-               int _canvasWidth,
-               int _canvasHeight,
-               double _horizontalPosition,
-               double _verticalPosition,
-               double _fontSize,
-               RGBA _characterColor,
-               void* _glyph = nullptr)
+            int _characterIndex,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            RGBA _characterColor,
+            void* _glyph = nullptr,
+            int _maxGraphemicX = -1)
     
-        void DrawString(
-               const std::wstring& _string,
-               TT_Parser::Font* _font,
-               unsigned char* _canvas,
-               ColorComponentOrder _colorComponentOrder,
-               int _canvasWidth,
-               int _canvasHeight,
-               double _horizontalPosition,
-               double _verticalPosition,
-               double _fontSize,
-               unsigned char _textR,
-               unsigned char _textG,
-               unsigned char _textB,
-               int _maxStringX = -1)
+       void DrawString(
+            const std::wstring& _string,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            unsigned char _textR,
+            unsigned char _textG,
+            unsigned char _textB,
+            int _maxGraphemicX = -1)
    
-        void DrawString(
-               const std::wstring& _string,
-               TT_Parser::Font* _font,
-               unsigned char* _canvas,
-               ColorComponentOrder _colorComponentOrder,
-               int _canvasWidth,
-               int _canvasHeight,
-               double _horizontalPosition,
-               double _verticalPosition,
-               double _fontSize,
-               RGBA _textColor,
-               int _maxStringX = -1)
+         void DrawString(
+            const std::wstring& _string,
+            TT_Parser::Font* _font,
+            unsigned char* _canvas,
+            ColorComponentOrder _colorComponentOrder,
+            int _canvasWidth,
+            int _canvasHeight,
+            double _horizontalPosition,
+            double _verticalPosition,
+            double _fontSize,
+            RGBA _textColor,
+            int _maxGraphemicX = -1)
    
         double GetGraphemicWidth(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
 
@@ -138,49 +140,6 @@ PUBLIC API
         double GetGraphemicHeight(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
 
         double GetTypographicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
-    
-USAGE EXAMPLE 
-
-    it's not a complete working example; you must visualize the canvas on the screen with additional code 
-
-        #include <Windows.h> 
-        #include <functional>
-        #include <string>
-        #include "TT_Parser.cpp"
-        #include "TT_Rasterizer.cpp"
-    
-        FILE* file = nullptr;
-      
-        std::wstring filepath = L"<font.ttf>"; //replace with real font path
-       
-        _wfopen_s(&file, filepath.c_str(), L"rb");
-    
-        int canvasWidth = <N>;
-        int canvasWidth = <N>;
-        
-        TT_Parser::Font* font = TT_Parser::ParseFont(file);
-    
-        unsigned char TT_Canvas = new unsigned char[canvasWidth * canvasHeight * 4];
-    
-        for (int i = 0; i < canvasWidth * canvasHeight * 4; i++)
-        {
-            TT_Canvas[i] = 255;
-        }
-    
-        TT_Rasterizer::DrawString(
-           L"Example string",
-           font,
-           TT_Canvas,
-           TT_Rasterizer::ColorComponentOrder::BGRA,
-           canvasWidth,
-           canvasHeight,
-           20, //x (in pixels)
-           20, //y (in pixels)
-           100, //size (in pixels)
-           TT_Rasterizer::Colors.CornflowerBlue);
-  
-        delete Font;
-        delete TT_Canvas;
    
 TERMINOLOGY (specific to TT_Rasterizer)
 
@@ -201,6 +160,7 @@ TERMINOLOGY (specific to TT_Rasterizer)
    - (terminating segmentoid) :: a segmentoid that is the last pixel in a fill-sequence
    - (corner-crossing) :: crossing in which delta only crosses the corner region, i.e. a crossing in which there is only samplex -
        this samplex is always in one of the corners of the pixel
+   - (pixeloid) :: 'vertex' of a pixel 
    - (fully-crossed pixel) :: a pixel that is traversed from one side to the side parallel to it (from left to right, bottom to top, etc)
    - (typographic width) ::
        (1) when applied to a single character, it means the width of the character with (the left-side bearing) and (the right-side bearing)
