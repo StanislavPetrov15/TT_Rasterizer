@@ -88,7 +88,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                 L"Example string",
                 font,
                 TT_Canvas,
-                TT_Rasterizer::ColorComponentOrder::BGRA,
+                TT_Rasterizer::ColorComponentOrder::BGRA, //SetDIBitsToDevice() uses BGR order
                 WindowWidth,
                 WindowHeight,
                 30, //x (in pixels)
