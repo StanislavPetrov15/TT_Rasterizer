@@ -32,7 +32,6 @@ namespace TT_Rasterizer
     int MetaCanvasHeight;
     int PreviousPixelX;
     int PreviousPixelY;
-    int MaxStringX; //(INTERNAL) X coordinate int the canvas (not an X coordinate in the string itself)
 
     /* two-stage drawing is needed (first in a meta-canvas byte array, then in the real canvas); this allows drawing over non-uniform background (
        consisting of many different colors) and also allows proper drawing of certain characters - for example Unicode codepoint Dx295 in
@@ -108,13 +107,6 @@ namespace TT_Rasterizer
 
         Rectangle() = default;
 
-        Rectangle(int _x, int _y, int _width, int _height)
-        {
-            X = _x;
-            Y = _y;
-            Width = _width;
-            Height = _height;
-        }
 
         bool Contains(int _x, int _y) const
         {
@@ -489,7 +481,7 @@ namespace TT_Rasterizer
     }
 
     //it copies segment (from _source to _destination) (beginning at _sourceBegin) and (with length specified by _length)
-    template<typename T> void copy(const T* _source, T* _destination, int _sourceLength, int _destinationLength, int _sourceBegin,
+    template<typename T> void copy(const T* _source, T* _destination, int _destinationLength, int _sourceBegin,
                                    int _destinationBegin, int _copyLength)
     {
         for (int n = 0; ; n++)
@@ -508,7 +500,7 @@ namespace TT_Rasterizer
     }
 
     //_length specifies the length of _array
-    template<typename T> void swap(T*& _array, int _length, int _i1, int _i2)
+    template<typename T> void swap(T*& _array, int _i1, int _i2)
     {
         T c = _array[_i1];
         _array[_i1] = _array[_i2];
@@ -520,7 +512,7 @@ namespace TT_Rasterizer
     {
         for (int i = 0; i < _length / 2; i ++)
         {
-            swap(_array, _length, i, (_length - i) - 1);
+            swap(_array, i, (_length - i) - 1);
         }
     }
 
@@ -633,7 +625,7 @@ namespace TT_Rasterizer
 
     //(PRIVATE)
     //(LOCAL-TO DrawCharacter)
-    RGBA GetPixel(unsigned char* _data, int _canvasWidth, int _canvasHeight, int _x, int _y)
+    RGBA GetPixel(unsigned char* _data, int _canvasWidth, int _x, int _y)
     {
         int offset = (_y * _canvasWidth + _x) * PIXEL_SIZE;
         unsigned char b = _data[offset];
@@ -905,8 +897,7 @@ namespace TT_Rasterizer
     //(PRIVATE)
     //(LOCAL-TO DrawCharacter)
     //determines the coverage of a segmentonom (singular crossing)
-    unsigned int CoverageOf(const Bitex& _enteringSamplex, const Bitex& _exitingSamplex, const Bitex& _nextEnteringSamplex,
-                            bool _isFilledContour, int _characterIndex)
+    unsigned int CoverageOf(const Bitex& _enteringSamplex, const Bitex& _exitingSamplex, const Bitex& _nextEnteringSamplex, bool _isFilledContour)
     {
         //(DEBUG-BLOCK)
         //(SHOULD-NOT-HAPPEN)
@@ -1166,7 +1157,7 @@ namespace TT_Rasterizer
     //(LOCAL-TO DrawCharacter)
     //determines the coverage of a segmentoid (singular crossing)
     unsigned int CoverageOf(const Bitex& _segmentoidVertex, const Bitex& _enteringSamplex, const Bitex& _exitingSamplex,
-                            const Bitex& _nextEnteringSamplex, bool _isFilledContour, int _characterIndex)
+                            const Bitex& _nextEnteringSamplex, bool _isFilledContour)
     {
         //(DEBUG)
         //(SHOULD-NOT-HAPPEN)
@@ -1199,9 +1190,7 @@ namespace TT_Rasterizer
         Bitex bottomRightPixeloid(RoundUp(_segmentoidVertex.X), RoundDown(_segmentoidVertex.Y));
 
         double localEnteringX = _enteringSamplex.X - RoundDown(_enteringSamplex.X);
-        double localEnteringY = _enteringSamplex.Y - RoundDown(_enteringSamplex.Y);
         double localExitingX = _exitingSamplex.X - RoundDown(_enteringSamplex.X);
-        double localExitingY = _exitingSamplex.Y - RoundDown(_enteringSamplex.Y);
 
         int currentPixelX = RoundDown(_enteringSamplex.X);
         int currentPixelY = RoundDown(_enteringSamplex.Y);
@@ -1696,7 +1685,7 @@ namespace TT_Rasterizer
     //(PRIVATE)
     //(LOCAL-TO DrawCharacter)
     //determines the coverage of multi-crossed segmentonom or segmentoid (this is the +1 crossing)
-    unsigned int CoverageOf(unsigned int _oldMarker, unsigned int _newMarker, int pX, int pY)
+    unsigned int CoverageOf(unsigned int _oldMarker, unsigned int _newMarker)
     {
         int oldCoverage = GetBits(_oldMarker, 0, 6);
         int newCoverage = GetBits(_newMarker, 0, 6);
@@ -1747,7 +1736,7 @@ namespace TT_Rasterizer
     //(PRIVATE)
     //(LOCAL-TO DrawCharacter)
     //(SOURCE) https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order?noredirect=1&lq=1
-    bool IsFilledContour(const short* _x_coordinates, const short* _y_coordinates, const unsigned char* _flags, int _pointCount)
+    bool IsFilledContour(const short* _x_coordinates, const short* _y_coordinates, int _pointCount)
     {
         int signedArea = 0;
 
@@ -1883,7 +1872,12 @@ namespace TT_Rasterizer
     //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
     //_fontSize is the height of the line (not the actual character) in pixels
 	//_glyph is a Parser::SimpleGlyph or Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
-    //(REQUIREMENT) the font must contain the glyph that is represented by the specified _characterIndex value (if set)
+    /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
+       character after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
+       this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
+    //(REQUIREMENT) the font must contain
+    /* (!!!) this is a non-validating function; the font must contain the glyph that is represented by the specified _characterIndex
+             value (if set) and the parameters must have correct values */
     void DrawCharacter(
             int _characterIndex,
             TT_Parser::Font* _font,
@@ -1901,7 +1895,8 @@ namespace TT_Rasterizer
             double _composite_X_Offset = 0.0, //(INTERNAL)
             double _composite_Y_Offset = 0.0, //(INTERNAL)
             double _composite_X_Scale = 0.0, //(INTERNAL)
-            double _composite_Y_Scale = 0.0) //(INTERNAL)
+            double _composite_Y_Scale = 0.0, //(INTERNAL)
+            int _maxGraphemicX = -1)
     {
 #if APPEND_DEBUG_INFO == 1
         const char* conturoidsPath = concatenate_string(DEBUG_INFO_PATH, "Conturoids.txt", strlen(DEBUG_INFO_PATH), 14);
@@ -1943,8 +1938,7 @@ namespace TT_Rasterizer
         else if (TT_Parser::Is(glyph, TT_Parser::SIMPLE_GLYPH))
         {
             TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
-            TT_Parser::HHEA_Table* hhea = reinterpret_cast<TT_Parser::HHEA_Table*>(GetTable(_font, TT_Parser::HHEA_TABLE));
-         
+
 		    int lsb;
 
             if (_glyph != nullptr)
@@ -1981,12 +1975,12 @@ namespace TT_Rasterizer
                 contour.X_Coordinates = new short[numberOfPoints];
                 contour.Y_Coordinates = new short[numberOfPoints];
                 contour.Flags = new unsigned char[numberOfPoints];
-                copy(glyph_->X_Coordinates, contour.X_Coordinates, numberOfPoints, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
-                copy(glyph_->Y_Coordinates, contour.Y_Coordinates, numberOfPoints, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
-                copy(glyph_->Flags, contour.Flags, numberOfPoints, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
+                copy(glyph_->X_Coordinates, contour.X_Coordinates, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
+                copy(glyph_->Y_Coordinates, contour.Y_Coordinates, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
+                copy(glyph_->Flags, contour.Flags, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
                 contour.NumberOfPoints = numberOfPoints;
                 contour.OriginalIndex = contourIndex;
-                contour.IsFilled = IsFilledContour(contour.X_Coordinates, contour.Y_Coordinates, contour.Flags, numberOfPoints);
+                contour.IsFilled = IsFilledContour(contour.X_Coordinates, contour.Y_Coordinates, numberOfPoints);
 
                 //(POSSIBLE-CASE)
                 if (numberOfContours == 1 && !contour.IsFilled)
@@ -2060,7 +2054,6 @@ namespace TT_Rasterizer
 
                     Contour& contour = unorderedContours[i];
                     Rectangle rectangle = GetEnclosingRectangle(contour);
-                    int area = rectangle.Width * rectangle.Height;
                     int mostDirectArea = -1;
                     Contour* mostDirectContainer = nullptr;
 
@@ -2160,7 +2153,6 @@ namespace TT_Rasterizer
                 {
                     int x_point = contour.X_Coordinates[pointIndex];
                     int y_point = contour.Y_Coordinates[pointIndex];
-                    int flag = contour.Flags[pointIndex];
 
                     if (x_point < lowestX)
                     {
@@ -2217,7 +2209,6 @@ namespace TT_Rasterizer
                 Contour& contour = orderedContours[contourIndex];
                 int numberOfPoints = contour.NumberOfPoints;
 
-                int indexOfFirstPoint = contour.OriginalIndex > 0 ? glyph_->EndPointsOfContours[contour.OriginalIndex - 1] + 1 : 0;
                 short* x_coordinates = contour.X_Coordinates;
                 short* y_coordinates = contour.Y_Coordinates;
                 unsigned char* flags = contour.Flags;
@@ -2560,7 +2551,7 @@ namespace TT_Rasterizer
 #endif
 
                                         unsigned int coverage = CoverageOf(Bitex(scaledPointX, scaledPointY), enteringSamplex,
-                                                                           Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled, _characterIndex);
+                                                               Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled);
 
                                         int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
@@ -2569,7 +2560,7 @@ namespace TT_Rasterizer
                                         //if the segmentoid is already crossed once (i.e. this is a +1 crossing)
                                         if (marker != 0 && marker != INITIAL_PIXEL_MARKER)
                                         {
-                                            MetaCanvas_S1[position] = CoverageOf(marker, coverage, currentPixelMinX, currentPixelMinY);
+                                            MetaCanvas_S1[position] = CoverageOf(marker, coverage);
                                         }
                                             //(STATE) this is the first crossing of the segmentoid
                                         else
@@ -2603,13 +2594,12 @@ namespace TT_Rasterizer
                                     /* it's possible that the entering and the exiting semplices are equal - this can happen if a pixel is 'missed',
                                        i.e. if there is corner crossing */
 
-                                    unsigned int coverage = CoverageOf(enteringSamplex, Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY),
-                                                                       contour.IsFilled, _characterIndex);
+                                    unsigned int coverage = CoverageOf(enteringSamplex, Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled);
 
                                     //if the segmentonom is already crossed once (i.e. this is a +1 crossing)
                                     if (marker_ != 0 && marker_ != INITIAL_PIXEL_MARKER)
                                     {
-                                        MetaCanvas_S1[position] = CoverageOf(marker_, coverage, currentPixelMinX, currentPixelMinY);
+                                        MetaCanvas_S1[position] = CoverageOf(marker_, coverage);
                                     }
                                         //(STATE) this is the first crossing of the segmentonom
                                     else
@@ -2809,8 +2799,6 @@ namespace TT_Rasterizer
 
                         while (true)
                         {
-                            double distance = DistanceOf(deltaX, deltaY, endPointX, endPointY);
-
                             oldDeltaX = deltaX;
                             oldDeltaY = deltaY;
 
@@ -2900,7 +2888,7 @@ namespace TT_Rasterizer
 #endif
 
                                         unsigned int coverage = CoverageOf(Bitex(beginPointX, beginPointY), enteringSamplex, Bitex(oldDeltaX, oldDeltaY),
-                                                                           Bitex(deltaX, deltaY), contour.IsFilled, _characterIndex);
+                                                                           Bitex(deltaX, deltaY), contour.IsFilled);
 
                                         int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
@@ -2909,7 +2897,7 @@ namespace TT_Rasterizer
                                         //if the segmentoid is already crossed once (i.e. this is a +1 crossing)
                                         if (marker != 0 && marker != INITIAL_PIXEL_MARKER)
                                         {
-                                            MetaCanvas_S1[position] = CoverageOf(marker, coverage, currentPixelMinX, currentPixelMinY);
+                                            MetaCanvas_S1[position] = CoverageOf(marker, coverage);
                                         }
                                             //(STATE) this is the first crossing of the segmentoid
                                         else
@@ -2938,16 +2926,16 @@ namespace TT_Rasterizer
                                     /* it's possible that the entering and the exiting semplices are equal - this can happen if a pixel is 'missed',
                                        i.e. if there is corner crossing */
 
-                                    unsigned int coverage = CoverageOf(enteringSamplex, Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled, _characterIndex);
+                                    unsigned int coverage = CoverageOf(enteringSamplex, Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled);
 
                                     int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
                                     unsigned int marker = MetaCanvas_S1[position];
-                                    
+
                                     //if the segmentonom is already crossed once (i.e. this is a +1 crossing)
                                     if (marker != 0 && marker != INITIAL_PIXEL_MARKER)
                                     {
-                                        MetaCanvas_S1[position] = CoverageOf(marker, coverage, currentPixelMinX, currentPixelMinY);
+                                        MetaCanvas_S1[position] = CoverageOf(marker, coverage);
                                     }
                                         //(STATE) this is the first crossing of the segmentonom
                                     else
@@ -2971,8 +2959,6 @@ namespace TT_Rasterizer
                                             conturoidsLog);
 #endif
 
-                                    int newPixelMinX = RoundDown(deltaX);
-                                    int newPixelMinY = RoundDown(deltaY);
                                     enteringSamplex.X = deltaX;
                                     enteringSamplex.Y = deltaY;
                                     PreviousPixelX = currentPixelMinX;
@@ -3006,7 +2992,7 @@ namespace TT_Rasterizer
                 if (beginPixelEnteringSamplex.X > -1)
                 {
                     unsigned int coverage = CoverageOf(endSegmentoid, beginPixelEnteringSamplex, beginPixelExitingSamplex,
-                                                       beginPixelNextSamplex, contour.IsFilled, _characterIndex);
+                                                       beginPixelNextSamplex, contour.IsFilled);
 
                     int position = beginContourPixelY * MetaCanvasWidth + beginContourPixelX;
 
@@ -3014,7 +3000,7 @@ namespace TT_Rasterizer
 
                     if (marker != 0 && marker != INITIAL_PIXEL_MARKER)
                     {
-                        MetaCanvas_S1[position] = CoverageOf(marker, coverage, currentPixelMinX, currentPixelMinY);
+                        MetaCanvas_S1[position] = CoverageOf(marker, coverage);
                     }
                     else
                     {
@@ -3163,16 +3149,17 @@ namespace TT_Rasterizer
                         continue;
                     }
 
-                    if (MaxStringX != -1 && targetColumn >= MaxStringX)
+                    if (_maxGraphemicX != -1 && targetColumn > _maxGraphemicX)
                     {
                         continue;
                     }
 
-                    RGBA backgroundColor = GetPixel(_canvas, _canvasWidth, _canvasHeight, targetColumn, targetRow);
+                    RGBA backgroundColor = GetPixel(_canvas, _canvasWidth, targetColumn, targetRow);
 
                     int targetPixelPosition = (targetRow * _canvasWidth + targetColumn) * PIXEL_SIZE;
 
                     RGBA color;
+
                     unsigned char betaCoverage = 100.0 - coverage;
 
                     if (pixelType == CONTUROID)
@@ -3318,7 +3305,11 @@ namespace TT_Rasterizer
     //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
     //_fontSize is the height of the line (not the actual character) in pixels
     //_glyph is a TT_Parser::SimpleGlyph or TT_Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
-    //(REQUIREMENT) the font must contain the glyph that is represented by the specified _characterIndex value (if set)
+    /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
+      character after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
+      this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
+    /* (!!!) this is a non-validating function; the font must contain the glyph that is represented by the specified _characterIndex
+         value (if set) and the parameters must have correct values */
     void DrawCharacter(
             int _characterIndex,
             TT_Parser::Font* _font,
@@ -3330,10 +3321,11 @@ namespace TT_Rasterizer
             double _verticalPosition,
             double _fontSize,
             RGBA _characterColor,
-            void* _glyph = nullptr)
+            void* _glyph = nullptr,
+            int _maxGraphemicX = -1)
     {
         DrawCharacter(_characterIndex, _font, _canvas, _colorComponentOrder, _canvasWidth, _canvasHeight, _horizontalPosition, _verticalPosition,
-                      _fontSize, _characterColor.R, _characterColor.G, _characterColor.B);
+                      _fontSize, _characterColor.R, _characterColor.G, _characterColor.B, _glyph, _maxGraphemicX);
     }
 
     //(PUBLIC)
@@ -3518,9 +3510,6 @@ namespace TT_Rasterizer
     //_fontSize is specified in pixels
     double GetGraphemicHeight(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
     {
-        TT_Parser::HEAD_Table* head = reinterpret_cast<TT_Parser::HEAD_Table*>(GetTable(_font, TT_Parser::HEAD_TABLE));
-        TT_Parser::GLYF_Table* glyf = reinterpret_cast<TT_Parser::GLYF_Table*>(GetTable(_font, TT_Parser::GLYF_TABLE));
-
         int minY = -1;
         int maxY = -1;
 
@@ -3573,9 +3562,11 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
     //_verticalPosition specifies the position (in pixels) of the baseline
     //_fontSize is the height of the line in pixels
-    //_maxStringX is a coordinate in the canvas (not an X coordinate in the string itself)
-    /*_maxStringX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
-       string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit */
+    /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
+       string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
+       this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
+    /* (!!!) this is a non-validating function; the font must contain all the (glyphs corresponding to the characters in the specified string)
+             and the parameters must have correct values */
     void DrawString(
             const std::wstring& _string,
             TT_Parser::Font* _font,
@@ -3589,21 +3580,15 @@ namespace TT_Rasterizer
             unsigned char _textR,
             unsigned char _textG,
             unsigned char _textB,
-            int _maxStringX = -1)
+            int _maxGraphemicX = -1)
     {
-        MaxStringX = _maxStringX;
-
         double SCALE = GetScale(_font, _fontSize);
-        TT_Parser::HHEA_Table* hhea = reinterpret_cast<TT_Parser::HHEA_Table*>(GetTable(_font, TT_Parser::HHEA_TABLE));
-        TT_Parser::OS2_Table* OS2 = reinterpret_cast<TT_Parser::OS2_Table*>(GetTable(_font, TT_Parser::OS2_TABLE));
         TT_Parser::HMTX_Table* hmtx = reinterpret_cast<TT_Parser::HMTX_Table*>(GetTable(_font, TT_Parser::HMTX_TABLE));
         int lsb = TT_Parser::GetLeftSideBearing(_font, _string[0]);
         _horizontalPosition -= lsb * SCALE;
 
         for (int i = 0; i < _string.length(); i++)
         {
-            void* glyph = GetGlyph(_font, _string[i]);
-
             DrawCharacter(
                     _string[i],
                     _font,
@@ -3616,7 +3601,13 @@ namespace TT_Rasterizer
                     _fontSize,
                     _textR,
                     _textG,
-                    _textB);
+                    _textB,
+                    nullptr,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    _maxGraphemicX);
 
             double scaledKerning = 0;
 
@@ -3638,12 +3629,12 @@ namespace TT_Rasterizer
                 {
                     _horizontalPosition += advanceWidth;
                 }
-                    //if there is negative kerning between the two characters
+                //if there is negative kerning between the two characters
                 else if (scaledKerning < 0)
                 {
                     _horizontalPosition += advanceWidth - (0 - scaledKerning);
                 }
-                    //if there is positive kerning between the two characters
+                //if there is positive kerning between the two characters
                 else
                 {
                     _horizontalPosition += advanceWidth + scaledKerning;
@@ -3660,8 +3651,11 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
     //_verticalPosition specifies the position (in pixels) of the baseline
     //_fontSize is the height of the line in pixels
-    /*_maxStringX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
-       string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit */
+    /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
+       string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit; this coordinate is
+       inclusive, i.e. the column matching the coordinate will also be visualized */
+    /* (!!!) this is a non-validating function; the font must contain all the (glyphs corresponding to the characters in the specified string)
+        and the parameters must have correct values */
     void DrawString(
             const std::wstring& _string,
             TT_Parser::Font* _font,
@@ -3673,9 +3667,9 @@ namespace TT_Rasterizer
             double _verticalPosition,
             double _fontSize,
             RGBA _textColor,
-            int _maxStringX = -1)
+            int _maxGraphemicX = -1)
     {
         DrawString(_string, _font, _canvas, _colorComponentOrder, _canvasWidth, _canvasHeight, _horizontalPosition, _verticalPosition,
-                   _fontSize, _textColor.R, _textColor.G, _textColor.B, _maxStringX);
+                   _fontSize, _textColor.R, _textColor.G, _textColor.B, _maxGraphemicX);
     }
 }
