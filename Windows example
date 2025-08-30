@@ -17,6 +17,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     _wfopen_s(&file, filename.c_str(), L"rb");
     font = TT_Parser::ParseFont(file);
 
+    ::SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE); //needed for correct visualization 
+
     WNDCLASSW wc{ 0 };
     wc.lpfnWndProc = EventHandler;
     wc.hInstance = hInstance;
