@@ -13,7 +13,7 @@ LRESULT CALLBACK EventHandler(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     FILE* file = nullptr;
-    std::wstring filename = L"..."; //(!!!) SET PATH TO THE .ttf FILE HERE
+    std::wstring filename = ...; //(!!!) SET PATH TO THE .ttf FILE HERE 
     _wfopen_s(&file, filename.c_str(), L"rb");
     font = TT_Parser::ParseFont(file);
 
