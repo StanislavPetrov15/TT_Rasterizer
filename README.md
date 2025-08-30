@@ -69,7 +69,7 @@ PUBLIC API
 
   - TT_Rasterizer.cpp:
 
-       void DrawCharacter(
+        void DrawCharacter(
             int _characterIndex,
             TT_Parser::Font* _font,
             unsigned char* _canvas,
@@ -103,7 +103,7 @@ PUBLIC API
             void* _glyph = nullptr,
             int _maxGraphemicX = -1)
     
-       void DrawString(
+        void DrawString(
             const std::wstring& _string,
             TT_Parser::Font* _font,
             unsigned char* _canvas,
