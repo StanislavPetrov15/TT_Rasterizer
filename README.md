@@ -178,5 +178,3 @@ TERMINOLOGY (specific to TT_Rasterizer)
    - (graphema) all the graphemic pixels for (a contour or a glyph), i.e. the visual representation of (a contour or a glyph) on the screen
 
 
-    delete font;
-
