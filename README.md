@@ -147,7 +147,7 @@ TERMINOLOGY (specific to TT_Rasterizer)
    - (segmentoid) :: begin/end pixel of a segment
    - (segmentonom) :: intermediate pixel (between two segmentoids)
    - (vertexoid) :: the begin/end point a segment
-   - (conturoid) :: a pixel that is crossed by a contour, i.e. a segmentoid or a segmentonom
+   - (conturoid) :: a pixel that is crossed by a contour, i.e. a segmentoid or a segmentonom; it's really "conturoid", not "contouroid", it's not a typo
    - (exteroid) :: exterior pixel; a pixel that is not part of the currently drawn character
    - (interoid) :: interior pixel; a pixel that is a part of the currently drawn character
    - (f-conturoid) :: a conturoid that is part of filled contour
