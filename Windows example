@@ -7,7 +7,7 @@
 int WindowWidth = 800;
 int WindowHeight = 500;
 HWND Window;
-TT_Parser::Font* font;
+TT::Font* font;
 
 LRESULT CALLBACK EventHandler(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
@@ -15,7 +15,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     FILE* file = nullptr;
     std::wstring filename = ...; //(!!!) SET PATH TO THE .ttf FILE HERE 
     _wfopen_s(&file, filename.c_str(), L"rb");
-    font = TT_Parser::ParseFont(file);
+    font = TT::ParseFont(file);
 
     ::SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE); //needed for correct visualization 
 
@@ -84,7 +84,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             TT_Canvas[i] = 255;
         }
 
-        TT_Rasterizer::DrawString(
+        TT::DrawString(
                 L"Example string",
                 font,
                 TT_Canvas,
@@ -94,7 +94,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                 30, //x (in pixels)
                 30, //y (in pixels)
                 80, //size (in pixels)
-                TT_Rasterizer::Colors.CornflowerBlue);
+                TT::Colors.CornflowerBlue);
 
         SetDIBitsToDevice(hdc, 0, 0, WindowWidth, WindowHeight, 0, 0, 0, WindowHeight, TT_Canvas, (BITMAPINFO*)&header, DIB_RGB_COLORS);
 
