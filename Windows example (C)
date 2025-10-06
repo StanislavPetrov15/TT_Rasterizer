@@ -15,7 +15,7 @@ LRESULT CALLBACK EventHandler(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hinstance, LPSTR lpstr, int n)
 {
     FILE* file = NULL;
-    wchar_t* filename = L"D:\\arial.ttf"; //(!!!) SET PATH TO THE .ttf FILE HERE
+    wchar_t* filename = ...; //(!!!) SET PATH TO THE .ttf FILE HERE
     _wfopen_s(&file, filename, L"rb");
     font = ParseFont(file);
 
