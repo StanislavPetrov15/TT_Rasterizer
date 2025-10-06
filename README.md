@@ -56,7 +56,7 @@ GENERAL NOTES
       - also the library makes a copy of the currently used font in the memory; very few fonts are very big though (over 10 MB)
 
 PUBLIC API
-
+```c
         void* GetTable(const Font* _font, short _identifier)
         
         Font* ParseFont(FILE* _file)
@@ -149,7 +149,7 @@ PUBLIC API
         double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fontSize)
 
         double GetTypographicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
-   
+```
 TERMINOLOGY (specific to TT_Rasterizer)
 
    - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
