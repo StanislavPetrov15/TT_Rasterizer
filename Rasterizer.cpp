@@ -1,11 +1,9 @@
-namespace TT_Rasterizer
+namespace TT
 {
-    //(PUBLIC)
+    //(PRIVATE)
 
     #define APPEND_DEBUG_INFO 0 //0 :: do not append debug info | 1 :: append debug info
     #define DEBUG_INFO_PATH "" //the directory where the debug files will be generated (for example "C:\\")
-
-    //(PRIVATE)
 
     const int PIXEL_SIZE = 4;
     const double PI = 3.14159265358979323846;
@@ -90,12 +88,6 @@ namespace TT_Rasterizer
         unsigned char* Flags;
         int NumberOfPoints;
         int OriginalIndex; //index before reordering
-
-        bool operator==(const Contour& _value) const
-        {
-            return IsFilled == _value.IsFilled && X_Coordinates == _value.X_Coordinates && Y_Coordinates == _value.Y_Coordinates &&
-                   Flags == _value.Flags && NumberOfPoints == _value.NumberOfPoints && OriginalIndex == _value.OriginalIndex;
-        }
     };
 
     struct Rectangle
@@ -200,11 +192,6 @@ namespace TT_Rasterizer
             B = _b;
             A = _a;
         }
-
-        bool operator==(const RGBA& _color) const
-        {
-            return R == _color.R && B == _color.B && G == _color.G;
-        }
     };
 
     //X11 colors
@@ -264,7 +251,7 @@ namespace TT_Rasterizer
         RGBA GreenYellow{ 173, 255, 47 };
         RGBA HoneyDew{ 240, 255, 240 };
         RGBA HotPink{ 255, 105, 180 };
-        RGBA IndianRed{ 255, 0, 0 };
+        RGBA IndianRed{ 205, 92, 92 };
         RGBA Indigo{ 75, 0, 130 };
         RGBA Ivory{ 255, 255, 240 };
         RGBA Khaki{ 240, 230, 140 };
@@ -351,14 +338,7 @@ namespace TT_Rasterizer
         RGBA InvalidValue{ 0, 0, 0, false };
     } Colors;
 
-    //_index >= 0 || _index <= 31 ->
-    bool GetBit(unsigned int _number, int _index)
-    {
-        _number = _number << (31 - _index);
-        _number = _number >> 31;
-        return _number;
-    }
-
+    //(PRIVATE)
     //_begin >= 0 || _end <= 31, _begin < _end ->
     unsigned int GetBits(unsigned int _number, int _begin, int _end)
     {
@@ -367,6 +347,7 @@ namespace TT_Rasterizer
         return _number;
     }
 
+    //(PRIVATE)
     //_index >= 0 || _index <= 31 ->
     void SetBit(unsigned int& _number, int _index, bool _value)
     {
@@ -380,6 +361,7 @@ namespace TT_Rasterizer
         }
     }
 
+    //(PRIVATE)
     //SetBits(x = 236, 4, 7, 0b1011) -> x = 188
     void SetBits(unsigned short& _number, int _begin, int _end, unsigned short _value)
     {
@@ -394,6 +376,7 @@ namespace TT_Rasterizer
         _number = result;
     }
 
+    //(PRIVATE)
     //SetBits(x = 236, 4, 7, 0b1011) -> x = 188
     void SetBits(unsigned int& _number, int _begin, int _end, unsigned int _value)
     {
@@ -408,6 +391,7 @@ namespace TT_Rasterizer
         _number = result;
     }
 
+    //(PRIVATE)
     int RoundDown(double _value)
     {
         if (_value >= 0.0)
@@ -420,6 +404,7 @@ namespace TT_Rasterizer
         }
     }
 
+    //(PRIVATE)
     int RoundDown_L(double _value)
     {
         if (_value >= 0.0)
@@ -432,6 +417,7 @@ namespace TT_Rasterizer
         }
     }
 
+    //(PRIVATE)
     int RoundUp(double _value)
     {
         if (_value >= 0.0)
@@ -444,18 +430,21 @@ namespace TT_Rasterizer
         }
     }
 
+    //(PRIVATE)
     //N1 == N2 => N2
     double SmallerOf(double N1, double N2)
     {
         return N1 < N2 ? N1 : N2;
     }
 
+    //(PRIVATE)
     //N1 == N2 => N2
     double LargerOf(double N1, double N2)
     {
         return N1 > N2 ? N1 : N2;
     }
 
+    //(PRIVATE)
     double AverageOf(double N1, double N2)
     {
         double larger = N1 > N2 ? N1 : N2;
@@ -463,7 +452,8 @@ namespace TT_Rasterizer
         return smaller + ((larger - smaller) / 2.0);
     }
 
-    template<typename T> T Absolute(T _number)
+    //(PRIVATE)
+    double Absolute(double _number)
     {
         if (_number >= 0)
         {
@@ -475,14 +465,16 @@ namespace TT_Rasterizer
         }
     }
 
+    //(PRIVATE)
     double FractionOf(double N)
     {
         return Absolute(N - RoundDown_L(N));
     }
 
+    //(PRIVATE)
     //it copies segment (from _source to _destination) (beginning at _sourceBegin) and (with length specified by _length)
-    template<typename T> void copy(const T* _source, T* _destination, int _destinationLength, int _sourceBegin,
-                                   int _destinationBegin, int _copyLength)
+    void copy_short(const short* _source, short* _destination, int _destinationLength, int _sourceBegin,
+                    int _destinationBegin, int _copyLength)
     {
         for (int n = 0; ; n++)
         {
@@ -499,43 +491,68 @@ namespace TT_Rasterizer
         }
     }
 
-    //_length specifies the length of _array
-    template<typename T> void swap(T*& _array, int _i1, int _i2)
+    //(PRIVATE)
+    //it copies segment (from _source to _destination) (beginning at _sourceBegin) and (with length specified by _length)
+    void copy_uchar(const unsigned char* _source, unsigned char* _destination, int _destinationLength, int _sourceBegin,
+                    int _destinationBegin, int _copyLength)
     {
-        T c = _array[_i1];
+        for (int n = 0; ; n++)
+        {
+            if (n == _copyLength)
+            {
+                break;
+            }
+            else if (_destinationBegin + n == _destinationLength)
+            {
+                break;
+            }
+
+            _destination[_destinationBegin + n] = _source[_sourceBegin + n];
+        }
+    }
+
+    //(PRIVATE)
+    //_length specifies the length of _array
+    void swap_short(short* _array, int _i1, int _i2)
+    {
+        short c = _array[_i1];
         _array[_i1] = _array[_i2];
         _array[_i2] = c;
     }
 
+    //(PRIVATE)
     //_length specifies the length of _array
-    template<typename T> void reverse(T*& _array, int _length)
+    void swap_uchar(unsigned char* _array, int _i1, int _i2)
+    {
+        unsigned char c = _array[_i1];
+        _array[_i1] = _array[_i2];
+        _array[_i2] = c;
+    }
+
+    //(PRIVATE)
+    //_length specifies the length of _array
+    void reverse_short(short* _array, int _length)
     {
         for (int i = 0; i < _length / 2; i ++)
         {
-            swap(_array, i, (_length - i) - 1);
+            swap_short(_array, i, (_length - i) - 1);
         }
     }
 
+    //(PRIVATE)
     //_length specifies the length of _array
-    //countOf([3, 5, 9, 5, 4, 9, 0, 5], 8, [](int x) { return x == 4; }) => 1
-    template<typename T> int countOf(const T* _array, int _length, const std::function<bool(const T&)>& _predicate)
+    void reverse_uchar(unsigned char* _array, int _length)
     {
-        int count = 0;
-
-        for (int i = 0; i < _length; i++)
+        for (int i = 0; i < _length / 2; i ++)
         {
-            if (_predicate(_array[i]))
-            {
-                count++;
-            }
+            swap_uchar(_array, i, (_length - i) - 1);
         }
-
-        return count;
     }
 
+    //(PRIVATE)
     //_length specifies the length of _array
     //_array has atleast one free element at the end ->
-    template<typename T> void insert(T*& _array, int _length, const T& _value, int _index)
+    void insert(Contour* _array, int _length, Contour* _value, int _index)
     {
         //moving of (the elements after _index) one position to the right
         for (int i = _length - 1; i > _index; i--)
@@ -543,22 +560,7 @@ namespace TT_Rasterizer
             _array[i] = _array[i - 1];
         }
 
-        _array[_index] = _value;
-    }
-
-    //_length specifies the length of _array
-    //the specified value does not exist or _begin is outside the range of array => -1
-    template<typename T> int indexOf(const T* _array, int _length, const std::function<bool(const T&)>& _predicate)
-    {
-        for (int i = 0; i < _length; i++)
-        {
-            if (_predicate(_array[i]))
-            {
-                return i;
-            }
-        }
-
-        return -1;
+        _array[_index] = *_value;
     }
 
     //(PRIVATE)
@@ -600,7 +602,7 @@ namespace TT_Rasterizer
     //(LOCAL-TO DrawCharacter)
     std::string to_string(double _number)
     {
-        char array [33/*enough for 32-bit number*/];
+        char array [33];
         sprintf(array, "%.2f", _number);
         return std::string(array);
     }
@@ -674,7 +676,7 @@ namespace TT_Rasterizer
         {
             return 0.0;
         }
-        ///special cases - 0, 90, 180 and 270 degrees
+            ///special cases - 0, 90, 180 and 270 degrees
         else if (originX == pointX && originY < pointY)
         {
             return 0.0;
@@ -691,28 +693,28 @@ namespace TT_Rasterizer
         {
             return 270.0;
         }
-        //if _point is in first quadrant in the local coordinate system with origin the point _origin
+            //if _point is in first quadrant in the local coordinate system with origin the point _origin
         else if (originX < pointX && originY < pointY)
         {
             double opposite = pointY - originY;
             double adjacent = pointX - originX;
             return 90.0 - RadiansToDegrees(atan(opposite / adjacent));
         }
-        //if _point is in second quadrant
+            //if _point is in second quadrant
         else if (originX < pointX && originY > pointY)
         {
             double opposite = originY - pointY;
             double adjacent = pointX - originX;
             return 90.0 + RadiansToDegrees(atan(opposite / adjacent));
         }
-        //if _point is in third quadrant
+            //if _point is in third quadrant
         else if (originX > pointX && originY > pointY)
         {
             double opposite = originY - pointY;
             double adjacent = originX - pointX;
             return 270.0 - RadiansToDegrees(atan(opposite / adjacent));
         }
-        //if _point is in fourth quadrant
+            //if _point is in fourth quadrant
         else if (originX > pointX && originY < pointY)
         {
             double opposite = pointY - originY;
@@ -723,7 +725,7 @@ namespace TT_Rasterizer
 
     //(PRIVATE)
     //(LOCAL-TO DrawCharacter)
-    //this function is using Bottom-Left координати
+    //this function is using Bottom-Left coordinates
     //_delta == _point => 0
     //_delta != _point => 0..360
     void Move(double* _deltaX, double* _deltaY, double _orientation, double _magnitude)
@@ -826,7 +828,7 @@ namespace TT_Rasterizer
         {
             return largerX - smallerX;
         }
-        //if Yv is aligned with Yr
+            //if Yv is aligned with Yr
         else if (x1 == x2)
         {
             return largerY - smallerY;
@@ -853,7 +855,7 @@ namespace TT_Rasterizer
         {
             return LargerOf(b1.X, b2.X) - SmallerOf(b1.X, b2.X);
         }
-        //if Yv is aligned with Yr
+            //if Yv is aligned with Yr
         else if (AreEqual(b1.X, b2.X))
         {
             return LargerOf(b1.Y, b2.Y) - SmallerOf(b1.Y, b2.Y);
@@ -880,18 +882,6 @@ namespace TT_Rasterizer
         double width = largerX - smallerX;
         double height = largerY - smallerY;
         return Bitex(smallerX + (width / 2.0), smallerY + (height / 2.0));
-    }
-
-    //(PRIVATE)
-    //(LOCAL-TO DrawCharacter)
-    //_length specifies the length of _array
-    //set([1, 2, 3, 4, 5], 5, 2, 4, 19) >> [1, 2, 19, 19, 19]
-    template<typename T> void set(T*& _array, int _begin, int _end, std::function<void(T&)> _predicate)
-    {
-        for (int i = _begin; i < _end + 1; i++)
-        {
-            _predicate(_array[i]);
-        }
     }
 
     //(PRIVATE)
@@ -1212,7 +1202,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = 1.0;
@@ -1220,7 +1210,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             double T3_A = T2_C;
             double T3_B = DistanceOf(_segmentoidVertex, _exitingSamplex);
@@ -1228,7 +1218,7 @@ namespace TT_Rasterizer
             double T3_semiperimeter = (T3_A + T3_B + T3_C) / 2.0;
             double T3_area = sqrt(T3_semiperimeter * (T3_semiperimeter - T3_A) * (T3_semiperimeter - T3_B) * (T3_semiperimeter - T3_C));
 
-            if (isnan(T3_area)) T3_area = 0.0;
+            if (std::isnan(T3_area)) T3_area = 0.0;
 
             coverage = (T1_area + T2_area + T3_area) * 100.0;
         }
@@ -1241,7 +1231,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = 1.0;
@@ -1249,7 +1239,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             double T3_A = T2_C;
             double T3_B = _exitingSamplex.Y - bottomLeftPixeloid.Y;
@@ -1257,7 +1247,7 @@ namespace TT_Rasterizer
             double T3_semiperimeter = (T3_A + T3_B + T3_C) / 2.0;
             double T3_area = sqrt(T3_semiperimeter * (T3_semiperimeter - T3_A) * (T3_semiperimeter - T3_B) * (T3_semiperimeter - T3_C));
 
-            if (isnan(T3_area)) T3_area = 0.0;
+            if (std::isnan(T3_area)) T3_area = 0.0;
 
             coverage = (1.0 - (T1_area + T2_area + T3_area)) * 100.0;
         }
@@ -1270,7 +1260,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = 1.0;
@@ -1278,7 +1268,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             double T3_A = T2_C;
             double T3_B = DistanceOf(_segmentoidVertex, _exitingSamplex);
@@ -1286,7 +1276,7 @@ namespace TT_Rasterizer
             double T3_semiperimeter = (T3_A + T3_B + T3_C) / 2.0;
             double T3_area = sqrt(T3_semiperimeter * (T3_semiperimeter - T3_A) * (T3_semiperimeter - T3_B) * (T3_semiperimeter - T3_C));
 
-            if (isnan(T3_area)) T3_area = 0.0;
+            if (std::isnan(T3_area)) T3_area = 0.0;
 
             coverage = (T1_area + T2_area + T3_area) * 100.0;
 
@@ -1301,7 +1291,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = DistanceOf(_segmentoidVertex, bottomLeftPixeloid);
@@ -1309,7 +1299,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             double T3_A = T2_B;
             double T3_B =  _exitingSamplex.X - bottomLeftPixeloid.X;
@@ -1317,7 +1307,7 @@ namespace TT_Rasterizer
             double T3_semiperimeter = (T3_A + T3_B + T3_C) / 2.0;
             double T3_area = sqrt(T3_semiperimeter * (T3_semiperimeter - T3_A) * (T3_semiperimeter - T3_B) * (T3_semiperimeter - T3_C));
 
-            if (isnan(T3_area)) T3_area = 0.0;
+            if (std::isnan(T3_area)) T3_area = 0.0;
 
             coverage = (T1_area + T2_area + T3_area) * 100.0;
 
@@ -1332,7 +1322,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = DistanceOf(_segmentoidVertex, _exitingSamplex);
@@ -1340,7 +1330,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = 100 - ((T1_area + T2_area) * 100.0);
 
@@ -1357,7 +1347,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = _enteringSamplex.X - upperLeftPixeloid.X;
@@ -1365,7 +1355,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = (T1_area + T2_area) * 100.0;
 
@@ -1382,7 +1372,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = DistanceOf(_segmentoidVertex, _exitingSamplex);
@@ -1390,7 +1380,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = (T1_area + T2_area) * 100.0;
 
@@ -1407,7 +1397,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_B;
             double T2_B = DistanceOf(_segmentoidVertex, _exitingSamplex);
@@ -1415,7 +1405,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = 100.0 - ((T1_area + T2_area) * 100.0);
 
@@ -1432,7 +1422,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = upperRightPixeloid.Y - _enteringSamplex.Y;
@@ -1440,7 +1430,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = (T1_area + T2_area) * 100.0;
 
@@ -1457,7 +1447,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = upperRightPixeloid.Y - _exitingSamplex.Y;
@@ -1465,7 +1455,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = 100.0 - ((T1_area + T2_area) * 100.0);
 
@@ -1482,7 +1472,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = bottomRightPixeloid.X - _exitingSamplex.X;
@@ -1490,7 +1480,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = 100.0 - ((T1_area + T2_area) * 100.0);
 
@@ -1507,7 +1497,7 @@ namespace TT_Rasterizer
             double T1_semiperimeter = (T1_A + T1_B + T1_C) / 2.0;
             double T1_area = sqrt(T1_semiperimeter * (T1_semiperimeter - T1_A) * (T1_semiperimeter - T1_B) * (T1_semiperimeter - T1_C));
 
-            if (isnan(T1_area)) T1_area = 0.0;
+            if (std::isnan(T1_area)) T1_area = 0.0;
 
             double T2_A = T1_C;
             double T2_B = _exitingSamplex.Y - bottomRightPixeloid.Y;
@@ -1515,7 +1505,7 @@ namespace TT_Rasterizer
             double T2_semiperimeter = (T2_A + T2_B + T2_C) / 2.0;
             double T2_area = sqrt(T2_semiperimeter * (T2_semiperimeter - T2_A) * (T2_semiperimeter - T2_B) * (T2_semiperimeter - T2_C));
 
-            if (isnan(T2_area)) T2_area = 0.0;
+            if (std::isnan(T2_area)) T2_area = 0.0;
 
             coverage = (T1_area + T2_area) * 100.0;
 
@@ -1535,7 +1525,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = T_area * 100.0;
 
@@ -1551,7 +1541,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = 100.0 - (T_area * 100.0);
 
@@ -1571,7 +1561,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = 100.0 - (T_area * 100.0);
 
@@ -1586,7 +1576,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = T_area * 100.0;
             }
@@ -1603,7 +1593,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = T_area * 100.0;
             }
@@ -1616,7 +1606,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = 100.0 - (T_area * 100.0);
             }
@@ -1633,7 +1623,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = 100.0 - (T_area * 100.0);
             }
@@ -1646,7 +1636,7 @@ namespace TT_Rasterizer
                 double T_semiperimeter = (T_A + T_B + T_C) / 2.0;
                 double T_area = sqrt(T_semiperimeter * (T_semiperimeter - T_A) * (T_semiperimeter - T_B) * (T_semiperimeter - T_C));
 
-                if (isnan(T_area)) T_area = 0.0;
+                if (std::isnan(T_area)) T_area = 0.0;
 
                 coverage = T_area * 100.0;
             }
@@ -1805,9 +1795,9 @@ namespace TT_Rasterizer
     }
 
     //_fontSize is specified in pixels
-    double GetScale(TT_Parser::Font* _font, double _fontSize)
+    double GetScale(TT::Font* _font, double _fontSize)
     {
-        TT_Parser::HEAD_Table* head = reinterpret_cast<TT_Parser::HEAD_Table*>(GetTable(_font, TT_Parser::HEAD_TABLE));
+        TT::HEAD_Table* head = reinterpret_cast<TT::HEAD_Table*>(GetTable(_font, TT::HEAD_TABLE));
         return _fontSize / (double)head->UnitsPerEm;
     }
 
@@ -1871,7 +1861,7 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the left border of the EM-square; it can be negative or positive value
     //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
     //_fontSize is the height of the line (not the actual character) in pixels
-	//_glyph is a Parser::SimpleGlyph or Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
+    //_glyph is a Parser::SimpleGlyph or Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
     /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
        character after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
        this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
@@ -1880,9 +1870,10 @@ namespace TT_Rasterizer
              value (if set) and the parameters must have correct values */
     void DrawCharacter(
             int _characterIndex,
-            TT_Parser::Font* _font,
+            void* _glyph,
+            TT::Font* _font,
             unsigned char* _canvas,
-            ColorComponentOrder _colorComponentOrder,
+            enum ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
             int _canvasHeight,
             double _horizontalPosition,
@@ -1891,12 +1882,11 @@ namespace TT_Rasterizer
             unsigned char _characterR,
             unsigned char _characterG,
             unsigned char _characterB,
-            void* _glyph = nullptr,
-            double _composite_X_Offset = 0.0, //(INTERNAL)
-            double _composite_Y_Offset = 0.0, //(INTERNAL)
-            double _composite_X_Scale = 0.0, //(INTERNAL)
-            double _composite_Y_Scale = 0.0, //(INTERNAL)
-            int _maxGraphemicX = -1)
+            int _maxGraphemicX,
+            double _composite_X_Offset, //(INTERNAL)
+            double _composite_Y_Offset, //(INTERNAL)
+            double _composite_X_Scale,  //(INTERNAL)
+            double _composite_Y_Scale) //(INTERNAL)
     {
 #if APPEND_DEBUG_INFO == 1
         const char* conturoidsPath = concatenate_string(DEBUG_INFO_PATH, "Conturoids.txt", strlen(DEBUG_INFO_PATH), 14);
@@ -1917,29 +1907,29 @@ namespace TT_Rasterizer
         {
             glyph = _glyph;
         }
-        //ако &_characterIndex is an Unicode codepoint
+            //ако &_characterIndex is an Unicode codepoint
         else if (_characterIndex > 0)
         {
             glyph = GetGlyph(_font, _characterIndex);
         }
-        //(STATE) _characterIndex is a glyph index (in the table 'glyf')
+            //(STATE) _characterIndex is a glyph index (in the table 'glyf')
         else
         {
-            TT_Parser::GLYF_Table* glyf = reinterpret_cast<TT_Parser::GLYF_Table*>(GetTable(_font, TT_Parser::GLYF_TABLE));
+            TT::GLYF_Table* glyf = reinterpret_cast<TT::GLYF_Table*>(GetTable(_font, TT::GLYF_TABLE));
             glyph = glyf->Glyphs[0 - _characterIndex];
         }
 
         ///IF THE GLYPH IS EMPTY (NON-CONTOUR GLYPH)
-        if (TT_Parser::Is(glyph, TT_Parser::EMPTY_GLYPH))
+        if (TT::Is(glyph, TT::EMPTY_GLYPH))
         {
             return;
         }
-        ///IF THE GLYPH IS SIMPLE
-        else if (TT_Parser::Is(glyph, TT_Parser::SIMPLE_GLYPH))
+            ///IF THE GLYPH IS SIMPLE
+        else if (TT::Is(glyph, TT::SIMPLE_GLYPH))
         {
-            TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
+            TT::SimpleGlyph* glyph_ = reinterpret_cast<TT::SimpleGlyph*>(glyph);
 
-		    int lsb;
+            int lsb;
 
             if (_glyph != nullptr)
             {
@@ -1947,9 +1937,9 @@ namespace TT_Rasterizer
             }
             else
             {
-                lsb = TT_Parser::GetLeftSideBearing(_font, _characterIndex);
+                lsb = TT::GetLeftSideBearing(_font, _characterIndex);
             }
-			
+
             ///CONTOUR REORDERING
 
             int numberOfContours = glyph_->NumberOfContours;
@@ -1975,9 +1965,9 @@ namespace TT_Rasterizer
                 contour.X_Coordinates = new short[numberOfPoints];
                 contour.Y_Coordinates = new short[numberOfPoints];
                 contour.Flags = new unsigned char[numberOfPoints];
-                copy(glyph_->X_Coordinates, contour.X_Coordinates, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
-                copy(glyph_->Y_Coordinates, contour.Y_Coordinates, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
-                copy(glyph_->Flags, contour.Flags, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
+                copy_short(glyph_->X_Coordinates, contour.X_Coordinates, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
+                copy_short(glyph_->Y_Coordinates, contour.Y_Coordinates, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
+                copy_uchar(glyph_->Flags, contour.Flags, numberOfPoints, indexOfFirstPoint, 0, numberOfPoints);
                 contour.NumberOfPoints = numberOfPoints;
                 contour.OriginalIndex = contourIndex;
                 contour.IsFilled = IsFilledContour(contour.X_Coordinates, contour.Y_Coordinates, numberOfPoints);
@@ -2041,7 +2031,7 @@ namespace TT_Rasterizer
             {
                 orderedContours = unorderedContours;
             }
-            //(STATE) F_Contours_Count >= 2 && N_Contours_Count >= 2; a reordering of the contours must be performed
+                //(STATE) F_Contours_Count >= 2 && N_Contours_Count >= 2; a reordering of the contours must be performed
             else
             {
                 //the first element of the pair is a contour, and the second element is his 'most-direct' container contour
@@ -2114,7 +2104,7 @@ namespace TT_Rasterizer
 
                         if (containerIndex != -1 && containerIndex < orderedContoursCount - 1)
                         {
-                            insert(orderedContours, numberOfContours, *pair.key(), containerIndex + 1);
+                            insert(orderedContours, numberOfContours, pair.key(), containerIndex + 1);
                         }
                         else
                         {
@@ -2214,8 +2204,11 @@ namespace TT_Rasterizer
                 unsigned char* flags = contour.Flags;
 
                 //(D)
-                set<short>(x_coordinates, 0, numberOfPoints - 1, [lowestX](short& x) { x -= lowestX; });
-                set<short>(y_coordinates, 0, numberOfPoints - 1, [lowestY](short& y) { y -= lowestY; });
+                for (int i = 0; i < numberOfPoints; i++)
+                {
+                    x_coordinates[i] -= lowestX;
+                    y_coordinates[i] -= lowestY;
+                }
 
                 //(->)
 
@@ -2394,7 +2387,7 @@ namespace TT_Rasterizer
                         {
                             scaledPointX += VERTEXOID_SHIFT;
                         }
-                        //if shifting the begin vertexoid to the left is needed
+                            //if shifting the begin vertexoid to the left is needed
                         else if (scaledXFraction >= 0.99)
                         {
                             scaledPointX -= VERTEXOID_SHIFT;
@@ -2432,7 +2425,7 @@ namespace TT_Rasterizer
                         {
                             scaledNextPointY += VERTEXOID_SHIFT;
                         }
-                        //if shifting the begin vertexoid downwards is needed
+                            //if shifting the begin vertexoid downwards is needed
                         else if (scaledNextYFraction >= 0.99)
                         {
                             scaledNextPointY -= VERTEXOID_SHIFT;
@@ -2551,7 +2544,7 @@ namespace TT_Rasterizer
 #endif
 
                                         unsigned int coverage = CoverageOf(Bitex(scaledPointX, scaledPointY), enteringSamplex,
-                                                               Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled);
+                                                                           Bitex(oldDeltaX, oldDeltaY), Bitex(deltaX, deltaY), contour.IsFilled);
 
                                         int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
@@ -2711,7 +2704,7 @@ namespace TT_Rasterizer
                         {
                             beginPointY += VERTEXOID_SHIFT;
                         }
-                        //if shifting the begin vertexoid downwards is needed
+                            //if shifting the begin vertexoid downwards is needed
                         else if (scaledYFraction >= 0.99)
                         {
                             beginPointY -= VERTEXOID_SHIFT;
@@ -2780,8 +2773,8 @@ namespace TT_Rasterizer
                         curveLength += curveLength / 100.0;
 
                         double percentage = 0.0;
-                        double onePixelPercentage = 100 / curveLength;
-                        double baseStep = (onePixelPercentage / 100) / 2; /* ~0.01px; the base step must be smaller than
+                        double onePixelPercentage = 100.0 / curveLength;
+                        double baseStep = (onePixelPercentage / 100.0) / 2.0; /* ~0.01px; the base step must be smaller than
                             VERTEXOID_SHIFT, so that a pixel will not be missed if there is corner crossing, i.e. to ensure
                             that delta will really cross the pixel (not just logically) and that the pixel will be marked as conturoid;
                             on the other hand the step has to be large enough to achieve better performance - in this case the difference
@@ -2821,8 +2814,8 @@ namespace TT_Rasterizer
                                 deltaY = p1_C_Interpolation_Y_ + (((C_p2_Interpolation_Y_ - p1_C_Interpolation_Y_) / 100.0) * percentage);
                                 percentage += baseStep;
                             }
-                            /* (STATE) there are more than 10 steps until crossing another pixel, and there are more than 10 steps
-                                 until the end of the curve */
+                                /* (STATE) there are more than 10 steps until crossing another pixel, and there are more than 10 steps
+                                     until the end of the curve */
                             else
                             {
                                 deltaX = delta_x;
@@ -3207,11 +3200,11 @@ namespace TT_Rasterizer
             ///(STATE) THE GLYPH IS COMPOSITE
         else
         {
-            TT_Parser::CompositeGlyph* glyph_ = reinterpret_cast<TT_Parser::CompositeGlyph*>(glyph);
+            TT::CompositeGlyph* glyph_ = reinterpret_cast<TT::CompositeGlyph*>(glyph);
 
             for (int i = 0; i < glyph_->NumberOfComponents; i++)
             {
-                TT_Parser::GlyphComponent* component = glyph_->Components[i];
+                TT::GlyphComponent* component = glyph_->Components[i];
 
                 double x_scale;
                 double y_scale;
@@ -3260,6 +3253,7 @@ namespace TT_Rasterizer
 
                 DrawCharacter(
                         -component->GlyphIndex,
+                        nullptr,
                         _font,
                         _canvas,
                         _colorComponentOrder,
@@ -3271,7 +3265,7 @@ namespace TT_Rasterizer
                         _characterR,
                         _characterG,
                         _characterB,
-                        nullptr,
+                        -1,
                         component->Argument1,
                         component->Argument2,
                         x_scale,
@@ -3297,6 +3291,7 @@ namespace TT_Rasterizer
     /* _characterIndex is a Unicode codepoint if it's a positive value, and glyph index (within the given font file) if it's a negative value;
       the function is non-validating - if _characterIndex is a Unicode codepoint, then it must be a valid Unicode codepoint and if
       _characterIndex is a glyph index, then it must be an index within the valid for the specific font range */
+    //_glyph is a TT::SimpleGlyph or TT::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
     //_canvas is (a RGBA or BGRA pixel array) in which the character is drawn
     //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
     //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
@@ -3304,7 +3299,6 @@ namespace TT_Rasterizer
     //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic pixel in the canvas; it can be negative or positive value
     //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
     //_fontSize is the height of the line (not the actual character) in pixels
-    //_glyph is a TT_Parser::SimpleGlyph or TT_Parser::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
     /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
       character after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
       this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
@@ -3312,7 +3306,8 @@ namespace TT_Rasterizer
          value (if set) and the parameters must have correct values */
     void DrawCharacter(
             int _characterIndex,
-            TT_Parser::Font* _font,
+            void* _glyph,
+            TT::Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3321,27 +3316,28 @@ namespace TT_Rasterizer
             double _verticalPosition,
             double _fontSize,
             RGBA _characterColor,
-            void* _glyph = nullptr,
-            int _maxGraphemicX = -1)
+            int _maxGraphemicX)
     {
-        DrawCharacter(_characterIndex, _font, _canvas, _colorComponentOrder, _canvasWidth, _canvasHeight, _horizontalPosition, _verticalPosition,
-                      _fontSize, _characterColor.R, _characterColor.G, _characterColor.B, _glyph, _maxGraphemicX);
+        DrawCharacter(_characterIndex, _glyph, _font, _canvas, _colorComponentOrder, _canvasWidth, _canvasHeight, _horizontalPosition, _verticalPosition,
+                      _fontSize, _characterColor.R, _characterColor.G, _characterColor.B, _maxGraphemicX, 0, 0, 0, 0);
     }
 
     //(PUBLIC)
     //returns the width of the string in pixels (with the left-side bearing of the first character and the right-side bearing of the last character)
-    double GetTypographicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+    double GetTypographicWidth(TT::Font* _font, const wchar_t* _string, double _fontSize)
     {
         int currentWidth = 0;
 
-        TT_Parser::HMTX_Table* hmtx = reinterpret_cast<TT_Parser::HMTX_Table*>(GetTable(_font, TT_Parser::HMTX_TABLE));
+        TT::HMTX_Table* hmtx = reinterpret_cast<TT::HMTX_Table*>(GetTable(_font, TT::HMTX_TABLE));
 
         //the first character in the string
 
         int index = GetGlyphIndex(_font, _string[0]);
         currentWidth += hmtx->HorizontalMetrics[index].AdvanceWidth;
 
-        double firstCharacterLeftSideBearing = TT_Parser::GetLeftSideBearing(_font, _string[0]);
+        double firstCharacterLeftSideBearing = TT::GetLeftSideBearing(_font, _string[0]);
+
+        int stringLength = wcslen(_string);
 
         if (firstCharacterLeftSideBearing < 0)
         {
@@ -3350,7 +3346,7 @@ namespace TT_Rasterizer
 
         //characters (1..last)
 
-        for (int i = 1; i < _string.length(); i++)
+        for (int i = 1; i < stringLength; i++)
         {
             int index = GetGlyphIndex(_font, _string[i]);
             currentWidth += hmtx->HorizontalMetrics[index].AdvanceWidth;
@@ -3358,7 +3354,7 @@ namespace TT_Rasterizer
 
         //the last character in the string
 
-        double lastCharacterRightSideBearing = TT_Parser::GetRightSideBearing(_font, _string[_string.length() - 1]);
+        double lastCharacterRightSideBearing = TT::GetRightSideBearing(_font, _string[stringLength - 1]);
 
         if (lastCharacterRightSideBearing < 0)
         {
@@ -3371,82 +3367,31 @@ namespace TT_Rasterizer
     }
 
     //(PUBLIC)
-    //returns the width of a single character in pixels (without the left-side bearing and the right-side bearing)
-    //_fontSize is speified in pixels
-    double GetGraphemicWidth(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
-    {
-        double SCALE = GetScale(_font, _fontSize);
-
-        void* glyph = GetGlyph(_font, _character);
-
-        if (TT_Parser::Is(glyph, TT_Parser::EMPTY_GLYPH))
-        {
-            TT_Parser::HMTX_Table* hmtx = reinterpret_cast<TT_Parser::HMTX_Table*>(GetTable(_font, TT_Parser::HMTX_TABLE));
-            int index = GetGlyphIndex(_font, _character);
-            return hmtx->HorizontalMetrics[index].AdvanceWidth * SCALE;
-        }
-        else if (TT_Parser::Is(glyph, TT_Parser::SIMPLE_GLYPH))
-        {
-            TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
-            return (glyph_->MaxX - glyph_->MinX) * SCALE;
-        }
-        else
-        {
-            TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
-            return glyph_->MaxX - glyph_->MinX;
-        }
-    }
-
-    //(PUBLIC)
-    //returns the height of a single character in pixels
-    //_character is an empty character => -1
-    //_fontSize is specified in pixels
-    double GetGraphemicHeight(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
-    {
-        double SCALE = GetScale(_font, _fontSize);
-
-        void* glyph = GetGlyph(_font, _character);
-
-        if (TT_Parser::Is(glyph, TT_Parser::EMPTY_GLYPH))
-        {
-            return -1;
-        }
-        else if (TT_Parser::Is(glyph, TT_Parser::SIMPLE_GLYPH))
-        {
-            TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
-            return (glyph_->MaxY - glyph_->MinY) * SCALE;
-        }
-        else
-        {
-            TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
-            return glyph_->MaxY - glyph_->MinY;
-        }
-    }
-
-    //(PUBLIC)
     //returns the width of the string in pixels (without the left-side bearing of the first character and the right-side bearing of the last character)
     //_fontSize is specified in pixels
     //_string.length() >= 1 ->
-    double GetGraphemicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+    double GetGraphemicWidth(TT::Font* _font, const wchar_t* _string, double _fontSize)
     {
         //(STATE) the string has more than 1 character
 
-        TT_Parser::HMTX_Table* hmtx = reinterpret_cast<TT_Parser::HMTX_Table*>(GetTable(_font, TT_Parser::HMTX_TABLE));
+        TT:HMTX_Table* hmtx = reinterpret_cast<TT::HMTX_Table*>(GetTable(_font, TT::HMTX_TABLE));
 
         double SCALE = GetScale(_font, _fontSize);
 
         int currentWidth = 0;
 
+        int stringLength = wcslen(_string);
+
         ///characters (0..last)
 
-        for (int i = 0; i < _string.length(); i++)
+        for (int i = 0; i < stringLength; i++)
         {
             int index = GetGlyphIndex(_font, _string[i]);
             double advanceWidth = hmtx->HorizontalMetrics[index].AdvanceWidth;
 
-            if (i < _string.length() - 1)
+            if (i < stringLength - 1)
             {
-                int kerning = TT_Parser::GetKerning(_font, _string[i], _string[i + 1]);
+                int kerning = TT::GetKerning(_font, _string[i], _string[i + 1]);
 
                 //if there is no kerning between the two characters
                 if (kerning == INT_MIN)
@@ -3472,7 +3417,7 @@ namespace TT_Rasterizer
 
         ///left-side bearing of the first character in the string
 
-        double firstCharacterLeftSideBearing = TT_Parser::GetLeftSideBearing(_font, _string[0]);
+        double firstCharacterLeftSideBearing = TT::GetLeftSideBearing(_font, _string[0]);
 
         //negative left-side bearing
         if (firstCharacterLeftSideBearing < 0)
@@ -3487,14 +3432,14 @@ namespace TT_Rasterizer
 
         ///right-side bearing of the last character in the string
 
-        double lastCharacterRightSideBearing = TT_Parser::GetRightSideBearing(_font,  _string[_string.length() - 1]);
+        double lastCharacterRightSideBearing = TT::GetRightSideBearing(_font,  _string[stringLength - 1]);
 
         //negative right-side bearing
         if (lastCharacterRightSideBearing < 0)
         {
             currentWidth += Absolute(lastCharacterRightSideBearing);
         }
-        //positive right-side bearing
+            //positive right-side bearing
         else
         {
             currentWidth -= lastCharacterRightSideBearing;
@@ -3508,22 +3453,23 @@ namespace TT_Rasterizer
     //(PUBLIC)
     //returns the graphemic height of the string in pixels (the distance between the lowest and the highest graphemic point in the string)
     //_fontSize is specified in pixels
-    double GetGraphemicHeight(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+    double GetGraphemicHeight(TT::Font* _font, const wchar_t* _string, double _fontSize)
     {
         int minY = -1;
         int maxY = -1;
+        int stringLength = wcslen(_string);
 
-        for (int i = 0; i < _string.length(); i++)
+        for (int i = 0; i < stringLength; i++)
         {
             void* glyph = GetGlyph(_font, _string[i]);
 
-            if (TT_Parser::Is(glyph, TT_Parser::EMPTY_GLYPH))
+            if (TT::Is(glyph, TT::EMPTY_GLYPH))
             {
                 continue;
             }
-            else if (TT_Parser::Is(glyph, TT_Parser::SIMPLE_GLYPH))
+            else if (TT::Is(glyph, TT::SIMPLE_GLYPH))
             {
-                TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
+                TT::SimpleGlyph* glyph_ = reinterpret_cast<TT::SimpleGlyph*>(glyph);
 
                 if (minY == -1 || glyph_->MinY < minY)
                 {
@@ -3537,7 +3483,7 @@ namespace TT_Rasterizer
             }
             else
             {
-                TT_Parser::CompositeGlyph* glyph_ = reinterpret_cast<TT_Parser::CompositeGlyph*>(glyph);
+                TT::CompositeGlyph* glyph_ = reinterpret_cast<TT::CompositeGlyph*>(glyph);
 
                 if (minY == -1 || glyph_->MinY < minY)
                 {
@@ -3568,8 +3514,8 @@ namespace TT_Rasterizer
     /* (!!!) this is a non-validating function; the font must contain all the (glyphs corresponding to the characters in the specified string)
              and the parameters must have correct values */
     void DrawString(
-            const std::wstring& _string,
-            TT_Parser::Font* _font,
+            const wchar_t* _string,
+            TT::Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3583,14 +3529,16 @@ namespace TT_Rasterizer
             int _maxGraphemicX = -1)
     {
         double SCALE = GetScale(_font, _fontSize);
-        TT_Parser::HMTX_Table* hmtx = reinterpret_cast<TT_Parser::HMTX_Table*>(GetTable(_font, TT_Parser::HMTX_TABLE));
-        int lsb = TT_Parser::GetLeftSideBearing(_font, _string[0]);
+        TT::HMTX_Table* hmtx = reinterpret_cast<TT::HMTX_Table*>(GetTable(_font, TT::HMTX_TABLE));
+        int lsb = TT::GetLeftSideBearing(_font, _string[0]);
         _horizontalPosition -= lsb * SCALE;
 
-        for (int i = 0; i < _string.length(); i++)
+        int stringLength = wcslen(_string);
+        for (int i = 0; i < stringLength; i++)
         {
             DrawCharacter(
                     _string[i],
+                    nullptr,
                     _font,
                     _canvas,
                     _colorComponentOrder,
@@ -3602,18 +3550,18 @@ namespace TT_Rasterizer
                     _textR,
                     _textG,
                     _textB,
-                    nullptr,
+                    _maxGraphemicX,
                     0.0,
                     0.0,
                     0.0,
-                    0.0,
-                    _maxGraphemicX);
+                    0.0);
 
             double scaledKerning = 0;
 
-            if (i < _string.length() - 1)
+            int stringLength = wcslen(_string);
+            if (i < stringLength - 1)
             {
-                int kerning = TT_Parser::GetKerning(_font, _string[i], _string[i + 1]);
+                int kerning = TT::GetKerning(_font, _string[i], _string[i + 1]);
 
                 //if there is kerning between the two characters
                 if (kerning != INT_MIN)
@@ -3629,12 +3577,12 @@ namespace TT_Rasterizer
                 {
                     _horizontalPosition += advanceWidth;
                 }
-                //if there is negative kerning between the two characters
+                    //if there is negative kerning between the two characters
                 else if (scaledKerning < 0)
                 {
                     _horizontalPosition += advanceWidth - (0 - scaledKerning);
                 }
-                //if there is positive kerning between the two characters
+                    //if there is positive kerning between the two characters
                 else
                 {
                     _horizontalPosition += advanceWidth + scaledKerning;
@@ -3657,8 +3605,8 @@ namespace TT_Rasterizer
     /* (!!!) this is a non-validating function; the font must contain all the (glyphs corresponding to the characters in the specified string)
         and the parameters must have correct values */
     void DrawString(
-            const std::wstring& _string,
-            TT_Parser::Font* _font,
+            const wchar_t* _string,
+            TT::Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
