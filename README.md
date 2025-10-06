@@ -64,13 +64,13 @@ PUBLIC API
         
         int GetRightSideBearing(const Font* _font, int _codepoint)
         
-        double GetAscent(TT_Parser::Font* _font, int _codepoint)
+        double GetAscent(const Font* _font, int _codepoint)
         
-        double GetAscent(TT_Parser::Font* _font, const std::wstring& _string)
+        double GetAscent(const Font* _font, const wchar_t* _string)
         
-        double GetDescent(TT_Parser::Font* _font, const int _codepoint)
+        double GetDescent(const Font* _font, const int _codepoint)
         
-        double GetDescent(TT_Parser::Font* _font, const std::wstring& _string)
+        double GetDescent(const Font* _font, const wchar_t* _string)
         
         int GetAdvanceWidth(const Font* _font, int _characterCode)
         
