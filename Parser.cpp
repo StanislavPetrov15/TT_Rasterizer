@@ -1,9 +1,14 @@
-namespace TT_Parser
+namespace TT
 {
     //supported tables - cmap, glyf, head, hhea, hmtx, kern, loca, maxp and OS/2
 
+    /* typograph format:
+      - bits 0..23 :: base-type flags
+      - bits 24..31 :: real-type identifier (a value between 24 and 256) */
+
     //(PUBLIC)
 
+    //identifiers of the real types in their typographs; used by Is() and GetTable()
     const short CMAP_TABLE = 24;
     const short GLYF_TABLE = 25;
     const short HEAD_TABLE = 26;
@@ -18,21 +23,19 @@ namespace TT_Parser
     const short CMAP_SUBTABLE_FORMAT4 = 51;
     const short CMAP_SUBTABLE_FORMAT6 = 52;
     const short CMAP_SUBTABLE_FORMAT12 = 53;
-    const short KERN_SUBTABLE_FORMAT0 = 54;
+    //cmap-subtable-format-2
+    //cmap_subtable-format-8
+    //cmap-subtаble-format-10
+    //cmap-subtable-format-13
+    //cmap-subtable-format-14
     const short EMPTY_GLYPH = 100;
     const short SIMPLE_GLYPH = 101;
     const short COMPOSITE_GLYPH = 102;
 
     //(PRIVATE)
-    bool Is(const void* _derived, int _typeIdentifier)
-    {
-        return ((*(unsigned int*)_derived) >> 24) == _typeIdentifier;
-    }
-
-    //(PRIVATE)
     struct CMAP_Subtable_Format0
     {
-        unsigned int Typograph = 0b00110010'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00110010'00000000'00000000'00000000; //(INTERNAL)
         unsigned short Length; //length of the table in bytes
         unsigned short Language;
         unsigned char GlyphIndexArray[256];
@@ -41,7 +44,7 @@ namespace TT_Parser
     //(PRIVATE)
     struct CMAP_Subtable_Format4
     {
-        unsigned int Typograph = 0b00110011'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00110011'00000000'00000000'00000000; //(INTERNAL)
         unsigned short Length; //length of the table in bytes
         unsigned short Language;
         unsigned short SegmentCountX2;
@@ -57,27 +60,27 @@ namespace TT_Parser
 
         ~CMAP_Subtable_Format4()
         {
-            delete[] EndCode;
-            delete[] StartCode;
-            delete[] IndexDelta;
-            delete[] IndexRangeOffsets;
-            delete[] GlyphIndexArray;
+            delete [] EndCode;
+            delete [] StartCode;
+            delete [] IndexDelta;
+            delete [] IndexRangeOffsets;
+            delete [] GlyphIndexArray;
         }
     };
 
     //(PRIVATE)
     struct CMAP_Subtable_Format6
     {
-        unsigned int Typograph = 0b00110100'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00110100'00000000'00000000'00000000; //(INTERNAL)
         unsigned short Length; //length of the table in bytes
-        unsigned short Language;
+        unsigned short Language ; //(SEE LANGUAGE_USE)
         unsigned short FirstCode; //begin character code in the range
         unsigned short EntryCount; //number of the character codes in the range
         unsigned short* GlyphIndexArray;
 
         ~CMAP_Subtable_Format6()
         {
-            delete[] GlyphIndexArray;
+            delete [] GlyphIndexArray;
         }
     };
 
@@ -86,13 +89,13 @@ namespace TT_Parser
     {
         unsigned int StartCharacterCode; //first character code in the group
         unsigned int EndCharacterCode; //last character code in the group
-        unsigned int StartGlyphIndex; //glyph index corresponding to the begin character code
+        unsigned int StartGlyphIndex; //глифов индекс съответстващ на началния символен код
     };
 
     //(PRIVATE)
     struct CMAP_Subtable_Format12
     {
-        unsigned int Typograph = 0b00110101'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00110101'00000000'00000000'00000000; //(INTERNAL)
         unsigned int Length; //length of the table in bytes
         unsigned int Language; //(SEE LANGUAGE_USE)
         unsigned int NumberOfGroups;
@@ -105,7 +108,7 @@ namespace TT_Parser
                 delete Groups[i];
             }
 
-            delete[] Groups;
+            delete [] Groups;
         }
     };
 
@@ -120,7 +123,7 @@ namespace TT_Parser
     //(PRIVATE)
     struct KERN_Subtable_Format0
     {
-        unsigned int Typograph = 0b00110110'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00110110'00000000'00000000'00000000; //(INTERNAL)
         unsigned int Version;
         unsigned short Length;
         unsigned short Coverage;
@@ -132,14 +135,14 @@ namespace TT_Parser
 
         ~KERN_Subtable_Format0()
         {
-            delete[] Pairs;
+            delete [] Pairs;
         }
     };
 
     //(PUBLIC)
     struct CMAP_Table
     {
-        unsigned int Typograph = 0b00011000'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011000'00000000'00000000'00000000; //(INTERNAL)
         unsigned short Version;
         unsigned short NumberOfSubtables;
         void** Subtables;
@@ -148,38 +151,23 @@ namespace TT_Parser
         {
             for (int i = 0; i < NumberOfSubtables; i++)
             {
-                if (Is(Subtables[i], CMAP_SUBTABLE_FORMAT0))
-                {
-                    delete reinterpret_cast<CMAP_Subtable_Format0*>(Subtables[i]);
-                }
-                else if (Is(Subtables[i], CMAP_SUBTABLE_FORMAT4))
-                {
-                     delete reinterpret_cast<CMAP_Subtable_Format4*>(Subtables[i]);
-                }
-                else if (Is(Subtables[i], CMAP_SUBTABLE_FORMAT6))
-                {
-                    delete reinterpret_cast<CMAP_Subtable_Format6*>(Subtables[i]);
-                }
-                else if (Is(Subtables[i], CMAP_SUBTABLE_FORMAT12))
-                {
-                    delete reinterpret_cast<CMAP_Subtable_Format12*>(Subtables[i]);
-                }
+                delete Subtables[i];
             }
 
-            delete[] Subtables;
+            delete [] Subtables;
         }
     };
 
     //(PUBLIC)
     struct EmptyGlyph
     {
-        unsigned int Typograph = 0b01100100'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b01100100'00000000'00000000'00000000; //(INTERNAL)
     };
 
     //(PUBLIC)
     struct SimpleGlyph
     {
-        unsigned int Typograph = 0b01100101'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b01100101'00000000'00000000'00000000; //(INTERNAL)
         short NumberOfContours;
         short MinX;
         short MinY;
@@ -193,10 +181,10 @@ namespace TT_Parser
 
         ~SimpleGlyph()
         {
-            delete[] EndPointsOfContours;
-            delete[] X_Coordinates;
-            delete[] Y_Coordinates;
-            delete[] Flags;
+             delete [] EndPointsOfContours;
+             delete [] X_Coordinates;
+             delete [] Y_Coordinates;
+             delete [] Flags;
         }
     };
 
@@ -227,29 +215,29 @@ namespace TT_Parser
     //(PUBLIC)
     struct CompositeGlyph
     {
-        unsigned int Typograph = 0b01100110'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
-        short MinX;
-        short MinY;
-        short MaxX;
-        short MaxY;
-        GlyphComponent** Components; //[GlyphComponent]
-        unsigned short NumberOfComponents;
+         unsigned int Typograph = 0b01100110'00000000'00000000'00000000; //(INTERNAL)
+         short MinX;
+         short MinY;
+         short MaxX;
+         short MaxY;
+         GlyphComponent** Components; //[GlyphComponent]
+         unsigned short NumberOfComponents;
 
-        ~CompositeGlyph()
-        {
-            for (int i = 0; i < NumberOfComponents; i++)
-            {
-                delete Components[i];
-            }
+         ~CompositeGlyph()
+         {
+               for (int i = 0; i < NumberOfComponents; i++)
+               {
+                    delete Components[i];
+               }
 
-            delete[] Components;
-        }
+               delete [] Components;
+         }
     };
 
     //(PUBLIC)
     struct GLYF_Table
     {
-        unsigned int Typograph = 0b00011001'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011001'00000000'00000000'00000000; //(INTERNAL)
         short NumberOfContours;
         void** Glyphs; //[SimpleGlyph & CompositeGlyph]
         short NumberOfGlyphs;
@@ -260,31 +248,19 @@ namespace TT_Parser
 
         ~GLYF_Table()
         {
-
             for (int i = 0; i < NumberOfGlyphs; i++)
             {
-                if (Is(Glyphs[i], EMPTY_GLYPH))
-                {
-                    delete reinterpret_cast<EmptyGlyph*>(Glyphs[i]);
-                }
-                else if (Is(Glyphs[i], SIMPLE_GLYPH))
-                {
-                    delete reinterpret_cast<SimpleGlyph*>(Glyphs[i]);
-                }
-                else if (Is(Glyphs[i], COMPOSITE_GLYPH))
-                {
-                    delete reinterpret_cast<CompositeGlyph*>(Glyphs[i]);
-                }
+                delete Glyphs[i];
             }
 
-            delete[] Glyphs;
+            delete [] Glyphs;
         }
     };
 
     //(PUBLIC)
     struct HEAD_Table
     {
-        unsigned int Typograph = 0b00011010'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011010'00000000'00000000'00000000; //(INTERNAL)
         unsigned short MajorVersion;
         unsigned short MinorVersion;
         unsigned short FontMajorRevision;
@@ -309,7 +285,7 @@ namespace TT_Parser
     //(PUBLIC)
     struct HHEA_Table
     {
-        unsigned int Typograph = 0b00011011'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011011'00000000'00000000'00000000; //(INTERNAL)
         unsigned short MajorVersion;
         unsigned short MinorVersion;
         short Ascender;
@@ -329,13 +305,13 @@ namespace TT_Parser
     //(PUBLIC)
     struct VHEA_Table
     {
-        unsigned int Typograph = 0b00100001'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00100001'00000000'00000000'00000000; //(INTERNAL)
     };
 
     //(PUBLIC)
     struct KERN_Table
     {
-        unsigned int Typograph = 0b00011110'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011110'00000000'00000000'00000000; //(INTERNAL)
         unsigned short Version;
         unsigned short NumberOfSubtables;
         void** Subtables;
@@ -344,13 +320,10 @@ namespace TT_Parser
         {
             for (int i = 0; i < NumberOfSubtables; i++)
             {
-                if (Is(Subtables[i], KERN_SUBTABLE_FORMAT0))
-                {
-                    delete reinterpret_cast<KERN_Subtable_Format0*>(Subtables[i]);
-                }
+                delete Subtables[i];
             }
 
-            delete[] Subtables;
+            delete [] Subtables;
         }
     };
 
@@ -364,34 +337,34 @@ namespace TT_Parser
     //(PUBLIC)
     struct HMTX_Table
     {
-        unsigned int Typograph = 0b00011100'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011100'00000000'00000000'00000000; //(INTERNAL)
         LongHorizontalMetric* HorizontalMetrics;
         short* LeftSideBearings;
 
         ~HMTX_Table()
         {
-            delete[] HorizontalMetrics;
-            delete[] LeftSideBearings;
+            delete [] HorizontalMetrics;
+            delete [] LeftSideBearings;
         }
     };
 
     //(PUBLIC)
     struct LOCA_Table
     {
-        unsigned int Typograph = 0b00011101'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011101'00000000'00000000'00000000; //(INTERNAL)
         void* Offsets; //[uint16] | [uint32]
         int ArrayType; //0 :: [uint16] | 1 :: [uint32]
 
         ~LOCA_Table()
         {
-            delete[] Offsets;
+            delete [] Offsets;
         }
     };
 
     //(PUBLIC)
     struct MAXP_Table
     {
-        unsigned int Typograph = 0b00011111'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00011111'00000000'00000000'00000000; //(INTERNAL)
         unsigned short MajorVersion;
         unsigned short MinorVersion;
         unsigned short NumberOfGlyphs;
@@ -413,7 +386,7 @@ namespace TT_Parser
     //(PUBLIC)
     struct OS2_Table
     {
-        unsigned int Typograph = 0b00100000'00000000'00000000'00000000; //(INTERNAL-CONSTANT)
+        unsigned int Typograph = 0b00100000'00000000'00000000'00000000; //(INTERNAL)
         unsigned short Version;
         short X_AverageCharacterWidth;
         unsigned short US_WeightClass;
@@ -466,50 +439,18 @@ namespace TT_Parser
         {
             for (int i = 0; i < NumberOfTables; i++)
             {
-                if (Tables[i] != nullptr)
-                {
-                    if (Is(Tables[i], CMAP_TABLE))
-                    {
-                        delete reinterpret_cast<CMAP_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], GLYF_TABLE))
-                    {
-                        delete reinterpret_cast<GLYF_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], HEAD_TABLE))
-                    {
-                        delete reinterpret_cast<HEAD_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], HMTX_TABLE))
-                    {
-                        delete reinterpret_cast<HMTX_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], HHEA_TABLE))
-                    {
-                        delete reinterpret_cast<HHEA_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], KERN_TABLE))
-                    {
-                        delete reinterpret_cast<KERN_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], LOCA_TABLE))
-                    {
-                        delete reinterpret_cast<LOCA_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], MAXP_TABLE))
-                    {
-                        delete reinterpret_cast<MAXP_Table*>(Tables[i]);
-                    }
-                    else if (Is(Tables[i], OS2_TABLE))
-                    {
-                        delete reinterpret_cast<OS2_Table*>(Tables[i]);
-                    }
-                }
+                delete Tables[i];
             }
 
-            delete[] Tables;
+            delete [] Tables;
         }
     };
+
+    //(PRIVATE)
+    bool Is(const void* _derived, int _typeIdentifier)
+    {
+        return ((*(unsigned int*)_derived) >> 24) == _typeIdentifier;
+    }
 
     //_index >= 0 || _index <= 31 ->
     bool GetBit(unsigned int _number, int _index)
@@ -689,8 +630,8 @@ namespace TT_Parser
 
     //(LOCAL-TO extend)
     //it copies segment (from _source to _destination) (beginning at_sourceBegin and ending at _sourceEnd)
-    template<typename T> void copyRange(const T* _source, T* _destination, int _sourceLength, int _destinationLength,
-                                        int _sourceBegin, int _sourceEnd, int _destinationBegin)
+    void copyRange(GlyphComponent* _source, GlyphComponent* _destination, int _sourceLength, int _destinationLength,
+                   int _sourceBegin, int _sourceEnd, int _destinationBegin)
     {
         for (int n = 0; ; n++)
         {
@@ -714,15 +655,15 @@ namespace TT_Parser
     //(LOCAL-TO ExtractCompositeGlyph)
     //_length specifies the length of _array
     //extend([1, 2, 3, 4, 5], 5, 2) >> [1, 2, 3, 4, 5, x, x]
-    template<typename T> void extend(T*& _array, int _length, int _extensor)
+    void extend(GlyphComponent* _array, int _length, int _extensor)
     {
         int newLength = _length + _extensor;
 
-        T* newArray = new T[newLength];
+        GlyphComponent* newArray = new GlyphComponent[newLength];
 
         copyRange(_array, newArray, _length, newLength, 0, _length - 1, 0);
 
-        delete[] _array;
+        free(_array);
 
         _array = newArray;
     }
@@ -739,7 +680,7 @@ namespace TT_Parser
         glyph->MaxY = ReadI16(_file);
 
         int size = 20;
-        GlyphComponent** components = new GlyphComponent * [size];
+        GlyphComponent** components = new GlyphComponent*[size];
         int componentCount = 0;
 
         //while there are more sub-glyphs
@@ -782,13 +723,13 @@ namespace TT_Parser
             {
                 component->Scale[0] = ReadI16(_file);
             }
-                //X and Y scaling
+            //X and Y scaling
             else if (GetBit(component->Flags, 6) == true)
             {
                 component->Scale[0] = ReadI16(_file);
                 component->Scale[1] = ReadI16(_file);
             }
-                //2x2 scaling
+            //2x2 scaling
             else if (GetBit(component->Flags, 7) == true)
             {
                 component->Scale[0] = ReadI16(_file);
@@ -803,7 +744,7 @@ namespace TT_Parser
 
             if (componentCount == size)
             {
-                extend(components, size, size / 2);
+                extend(*components, size, size / 2);
             }
 
             //if there are instructions for &glyph following (if present, they're always located after the last sub-glyph in the parent composite glyph)
@@ -822,16 +763,17 @@ namespace TT_Parser
             }
         }
 
-        glyph->Components = new TT_Parser::GlyphComponent * [componentCount];
+        glyph->Components = new GlyphComponent*[componentCount];
 
         for (int i = 0; i < componentCount; i++)
         {
+        auto rggrg = components[i];
             glyph->Components[i] = components[i];
         }
 
         glyph->NumberOfComponents = componentCount;
 
-        delete[] components;
+        delete [] components;
 
         return reinterpret_cast<void*>(glyph);
     }
@@ -860,7 +802,7 @@ namespace TT_Parser
 
         font->SFNT_VERSION = ReadI32(_file); //65536 :: TrueType contours | 1330926671 :: CFF data
         font->NumberOfTables = ReadI16(_file);
-        font->Tables = new void* [font->NumberOfTables];
+        font->Tables = new void*[font->NumberOfTables];
         for (int i = 0; i < font->NumberOfTables; i++)
             font->Tables[i] = nullptr; //as some tables are not supported, null values have to be added to each table slot
 
@@ -890,7 +832,7 @@ namespace TT_Parser
 
                 table->Version = ReadI16(_file);
                 table->NumberOfSubtables = ReadI16(_file);
-                table->Subtables = new void* [table->NumberOfSubtables];
+                table->Subtables = new void*[table->NumberOfSubtables];
 
                 for (int n = 0; n < table->NumberOfSubtables; n++)
                 {
@@ -955,7 +897,7 @@ namespace TT_Parser
                             subtable->IndexRangeOffsets[m] = ReadI16(_file);
                         //
                         int glyphIndexArrayCount = (subtable->Length -
-                                                    ((16 /*8 2-byte fields*/) + (4 * (segmentCount * 2) /*4 arrays with (2-byte elements) with length = &segmentCount*/))) / 2;
+                              ((16 /*8 2-byte fields*/) + (4 * (segmentCount * 2) /*4 arrays with (2-byte elements) with length = &segmentCount*/))) / 2;
                         subtable->GlyphIndexArray = new unsigned short[glyphIndexArrayCount];
                         for (int m = 0; m < glyphIndexArrayCount; m++)
                         {
@@ -987,7 +929,7 @@ namespace TT_Parser
                         subtable->Length = ReadI32(_file);
                         subtable->Language = ReadI32(_file);
                         subtable->NumberOfGroups = ReadI32(_file);
-                        subtable->Groups = new SequentialMapGroup * [subtable->NumberOfGroups];
+                        subtable->Groups = new SequentialMapGroup*[subtable->NumberOfGroups];
 
                         for (int m = 0; m < subtable->NumberOfGroups; m++)
                         {
@@ -1070,7 +1012,7 @@ namespace TT_Parser
                 KERN_Table* table = new KERN_Table;
                 table->Version = ReadI16(_file);
                 table->NumberOfSubtables = ReadI16(_file);
-                table->Subtables = new void* [table->NumberOfSubtables];
+                table->Subtables = new void*[table->NumberOfSubtables];
 
                 //extracting the sub-tables
                 for (int i = 0; i < table->NumberOfSubtables; i++)
@@ -1233,11 +1175,11 @@ namespace TT_Parser
                 //extracting horizontal metrics
                 for (int n = 0; n < numberOfHorizontalMetrics; n++)
                 {
-                    LongHorizontalMetric metric;
-                    metric.AdvanceWidth = ReadI16(_file);
-                    metric.LeftSideBearing = ReadI16(_file);
-                    table->HorizontalMetrics[n] = metric;
-                    lastAdvanceWidth = metric.AdvanceWidth;
+                     LongHorizontalMetric metric;
+                     metric.AdvanceWidth = ReadI16(_file);
+                     metric.LeftSideBearing = ReadI16(_file);
+                     table->HorizontalMetrics[n] = metric;
+                     lastAdvanceWidth = metric.AdvanceWidth;
                 }
 
                 //extracting left side bearings
@@ -1268,7 +1210,7 @@ namespace TT_Parser
                     locaTable->Offsets = reinterpret_cast<void*>(array);
                     locaTable->ArrayType = 0;
                 }
-                    //'long' version
+                //'long' version
                 else
                 {
                     unsigned int* array = new unsigned int[numberOfGlyphs + 1];
@@ -1285,7 +1227,7 @@ namespace TT_Parser
                 font->Tables[i] = reinterpret_cast<void*>(locaTable);
             }
 
-            //positiong the file at the beginning of the next table header
+            //positioning the file at the beginning of the next table header
             fseek(_file, tableHeaderBegin, SEEK_SET);
         }
 
@@ -1333,14 +1275,14 @@ namespace TT_Parser
                     //uint16 values
                     if (n < numberOfGlyphs && locaTable->ArrayType == 0)
                     {
-                        glyphOffset = reinterpret_cast<unsigned short*>(locaTable->Offsets)[n] * 2;
-                        nextGlyphOffset = reinterpret_cast<unsigned short*>(locaTable->Offsets)[n + 1] * 2;
+                         glyphOffset = reinterpret_cast<unsigned short*>(locaTable->Offsets)[n] * 2;
+                         nextGlyphOffset = reinterpret_cast<unsigned short*>(locaTable->Offsets)[n + 1] * 2;
                     }
-                        //uint32 values
+                    //uint32 values
                     else if (n < numberOfGlyphs)
                     {
-                        glyphOffset = reinterpret_cast<unsigned int*>(locaTable->Offsets)[n];
-                        nextGlyphOffset = reinterpret_cast<unsigned int*>(locaTable->Offsets)[n + 1];
+                         glyphOffset = reinterpret_cast<unsigned int*>(locaTable->Offsets)[n];
+                         nextGlyphOffset = reinterpret_cast<unsigned int*>(locaTable->Offsets)[n + 1];
                     }
 
                     //if the contour has no glyphs
@@ -1361,12 +1303,12 @@ namespace TT_Parser
                     //if the glyph is simple
                     if (numberOfContours >= 0)
                     {
-                        table->Glyphs[n] = ExtractSimpleGlyph(_file, numberOfContours);
+                         table->Glyphs[n] = ExtractSimpleGlyph(_file, numberOfContours);
                     }
-                        //(STATE) the glyph is composite
+                    //(STATE) the glyph is composite
                     else
                     {
-                        table->Glyphs[n] = ExtractCompositeGlyph(_file);
+                         table->Glyphs[n] = ExtractCompositeGlyph(_file);
                     }
                 }
 
@@ -1384,37 +1326,37 @@ namespace TT_Parser
     //(the glyph corresponding to the specified codepoint) does not exist in the file => -1
     int GetGlyphIndex(const Font* _font, int _codepoint)
     {
-        CMAP_Table* cmap = reinterpret_cast<CMAP_Table*>(GetTable(_font, CMAP_TABLE));
+          CMAP_Table* cmap = reinterpret_cast<CMAP_Table*>(GetTable(_font, CMAP_TABLE));
 
-        for (int i = cmap->NumberOfSubtables - 1; i > -1; i--)
-        {
-            if (cmap->Subtables[i] == nullptr)
-            {
-                continue;
-            }
-            else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT12))
-            {
-                CMAP_Subtable_Format12* subtable = reinterpret_cast<CMAP_Subtable_Format12*>(cmap->Subtables[i]);
+          for (int i = cmap->NumberOfSubtables - 1; i > -1; i--)
+          {
+              if (cmap->Subtables[i] == nullptr)
+              {
+                 continue;
+              }
+              else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT12))
+              {
+                  CMAP_Subtable_Format12* subtable = reinterpret_cast<CMAP_Subtable_Format12*>(cmap->Subtables[i]);
 
-                //(NEED-TESTING)
+                  //(NEED-TESTING)
 
-                for (int i = 0; i < subtable->NumberOfGroups; i++)
-                {
-                    if (_codepoint >= subtable->Groups[i]->StartCharacterCode && _codepoint <= subtable->Groups[i]->EndCharacterCode)
-                    {
-                        return subtable->Groups[i]->StartGlyphIndex + _codepoint - subtable->Groups[i]->StartCharacterCode;
-                    }
-                }
+                  for (int i = 0; i < subtable->NumberOfGroups; i++)
+                  {
+                      if (_codepoint >= subtable->Groups[i]->StartCharacterCode && _codepoint <= subtable->Groups[i]->EndCharacterCode)
+                      {
+                          return subtable->Groups[i]->StartGlyphIndex + _codepoint - subtable->Groups[i]->StartCharacterCode;
+                      }
+                  }
 
-                return -1;
-            }
+                  return -1;
+              }
             else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT6))
             {
                 CMAP_Subtable_Format6* subtable = reinterpret_cast<CMAP_Subtable_Format6*>(cmap->Subtables[i]);
 
                 //(NEED-TESTING)
 
-                if (_codepoint < subtable->FirstCode || _codepoint >(subtable->FirstCode + subtable->EntryCount) - 1)
+                if (_codepoint < subtable->FirstCode || _codepoint > (subtable->FirstCode + subtable->EntryCount) - 1)
                 {
                     return -1;
                 }
@@ -1423,66 +1365,66 @@ namespace TT_Parser
                     return subtable->GlyphIndexArray[_codepoint - subtable->FirstCode];
                 }
             }
-            else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT4))
-            {
-                CMAP_Subtable_Format4* subtable = reinterpret_cast<CMAP_Subtable_Format4*>(cmap->Subtables[i]);
+               else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT4))
+               {
+                   CMAP_Subtable_Format4* subtable = reinterpret_cast<CMAP_Subtable_Format4*>(cmap->Subtables[i]);
 
-                int segmentCount = subtable->SegmentCountX2 / 2;
+                   int segmentCount = subtable->SegmentCountX2 / 2;
 
-                for (int n = 0; n < segmentCount; n++)
-                {
-                    if (subtable->EndCode[n] >= _codepoint)
+                    for (int n = 0; n < segmentCount; n++)
                     {
-                        int correspondingStartCode = subtable->StartCode[n];
-
-                        /* (SOURCE Apple) "If the corresponding startCode is less than or equal to the character code, then use the corresponding idDelta and
-                            idRangeOffset to map the character code to the glyph index. Otherwise, the missing character glyph is returned. " */
-                        if (correspondingStartCode <= _codepoint)
+                        if (subtable->EndCode[n] >= _codepoint)
                         {
-                            /* (SOURCE Apple) "If the idRangeOffset value for the segment is not 0, the mapping of the character codes
-                                relies on the glyphIndexArray." */
-                            if (subtable->IndexRangeOffsets[n] != 0)
-                            {
-                                unsigned short glyphIndex = subtable->GlyphIndexArray[
-                                        (subtable->IndexRangeOffsets[n] / 2 /*as these indexes are in bytes*/) - (segmentCount - n) + (_codepoint - subtable->StartCode[n])];
+                            int correspondingStartCode = subtable->StartCode[n];
 
-                                /* (SOURCE Apple) "Once the glyph indexing operation is complete, the glyph ID at the indicated address is checked.
-                                    If it's not 0 (that is, if it's not the missing glyph), the value is added to idDelta[i] to get the actual glyph ID to use." */
-                                if (glyphIndex != 0)
+                            /* (SOURCE Apple) "If the corresponding startCode is less than or equal to the character code, then use the corresponding idDelta and
+                                idRangeOffset to map the character code to the glyph index. Otherwise, the missing character glyph is returned. " */
+                            if (correspondingStartCode <= _codepoint)
+                            {
+                                /* (SOURCE Apple) "If the idRangeOffset value for the segment is not 0, the mapping of the character codes
+                                    relies on the glyphIndexArray." */
+                                if (subtable->IndexRangeOffsets[n] != 0)
                                 {
-                                    return glyphIndex + subtable->IndexDelta[n];
+                                    unsigned short glyphIndex = subtable->GlyphIndexArray[
+                                             (subtable->IndexRangeOffsets[n] / 2 /*as these indexes are in bytes*/) - (segmentCount - n) + (_codepoint - subtable->StartCode[n])];
+
+                                    /* (SOURCE Apple) "Once the glyph indexing operation is complete, the glyph ID at the indicated address is checked.
+                                        If it's not 0 (that is, if it's not the missing glyph), the value is added to idDelta[i] to get the actual glyph ID to use." */
+                                    if (glyphIndex != 0)
+                                    {
+                                        return glyphIndex + subtable->IndexDelta[n];
+                                    }
+                                    else
+                                    {
+                                        return -1; //missing character/glyph
+                                    }
                                 }
+                                //(SOURCE Apple) "If the idRangeOffset is 0, the idDelta value is added directly to the character code to get the corresponding glyph index."
                                 else
                                 {
-                                    return -1; //missing character/glyph
+                                    return (subtable->IndexDelta[n] + _codepoint) % 65536;
                                 }
                             }
-                                //(SOURCE Apple) "If the idRangeOffset is 0, the idDelta value is added directly to the character code to get the corresponding glyph index."
                             else
                             {
-                                return (subtable->IndexDelta[n] + _codepoint) % 65536;
+                                return -1; //missing character/glyph
                             }
                         }
-                        else
-                        {
-                            return -1; //missing character/glyph
-                        }
                     }
-                }
-            }
-            else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT0) && _codepoint < 256)
-            {
-                CMAP_Subtable_Format0* subtable = reinterpret_cast<CMAP_Subtable_Format0*>(cmap->Subtables[i]);
-                return subtable->GlyphIndexArray[_codepoint];
-            }
-                //format 8|10|13|14
-            else
-            {
-                continue;
-            }
-        }
+               }
+               else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT0) && _codepoint < 256)
+               {
+                   CMAP_Subtable_Format0* subtable = reinterpret_cast<CMAP_Subtable_Format0*>(cmap->Subtables[i]);
+                   return subtable->GlyphIndexArray[_codepoint];
+               }
+               //format 8|10|13|14
+               else
+               {
+                   continue;
+               }
+          }
 
-        return -1;
+          return -1;
     }
 
     //(PUBLIC)
@@ -1522,16 +1464,16 @@ namespace TT_Parser
     //the specified character (codepoint) exists in the file  ->
     int GetLeftSideBearing(const Font* _font, int _characterCode)
     {
-        HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
+         HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
 
-        if (_characterCode < 0)
-        {
-            return hmtx->HorizontalMetrics[0 - _characterCode].LeftSideBearing;
-        }
-        else
-        {
-            return hmtx->HorizontalMetrics[GetGlyphIndex(_font, _characterCode)].LeftSideBearing;
-        }
+         if (_characterCode < 0)
+         {
+             return hmtx->HorizontalMetrics[0 - _characterCode].LeftSideBearing;
+         }
+         else
+         {
+             return hmtx->HorizontalMetrics[GetGlyphIndex(_font, _characterCode)].LeftSideBearing;
+         }
     }
 
     //(PUBLIC)
@@ -1539,42 +1481,42 @@ namespace TT_Parser
     //the specified character (codepoint) exists in the glyph ->
     int GetRightSideBearing(const Font* _font, int _codepoint)
     {
-        HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
-        GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
-        int glyphIndex = GetGlyphIndex(_font, _codepoint);
-        int advanceWidth = hmtx->HorizontalMetrics[glyphIndex].AdvanceWidth;
-        void* glyph = glyf->Glyphs[glyphIndex];
+       HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
+       GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
+       int glyphIndex = GetGlyphIndex(_font, _codepoint);
+       int advanceWidth = hmtx->HorizontalMetrics[glyphIndex].AdvanceWidth;
+       void* glyph = glyf->Glyphs[glyphIndex];
 
-        if (Is(glyph, EMPTY_GLYPH))
-        {
-            return 0;
-        }
-        else if (Is(glyph, SIMPLE_GLYPH))
-        {
+       if (Is(glyph, EMPTY_GLYPH))
+       {
+           return 0;
+       }
+       else if (Is(glyph, SIMPLE_GLYPH))
+       {
             SimpleGlyph* glyph_ = reinterpret_cast<SimpleGlyph*>(glyph);
 
             if (glyph_->MinX < 0)
             {
-                return advanceWidth - (glyph_->MaxX - (0 - glyph_->MinX));
+               return advanceWidth - (glyph_->MaxX - (0 - glyph_->MinX));
             }
             else
             {
-                return advanceWidth - glyph_->MaxX;
+               return advanceWidth - glyph_->MaxX;
             }
-        }
-        else
-        {
-            CompositeGlyph* glyph_ = reinterpret_cast<CompositeGlyph*>(glyph);
+       }
+       else
+       {
+           CompositeGlyph* glyph_ = reinterpret_cast<CompositeGlyph*>(glyph);
 
-            if (glyph_->MinX < 0)
-            {
-                return advanceWidth - (glyph_->MaxX - (0 - glyph_->MinX));
-            }
-            else
-            {
-                return advanceWidth - glyph_->MaxX;
-            }
-        }
+           if (glyph_->MinX < 0)
+           {
+               return advanceWidth - (glyph_->MaxX - (0 - glyph_->MinX));
+           }
+           else
+           {
+               return advanceWidth - glyph_->MaxX;
+           }
+       }
     }
 
     //(PUBLIC)
@@ -1582,25 +1524,25 @@ namespace TT_Parser
     //returns negative value if the highest graphemic point of the character is below the baseline
     //returns INT_MAX if the _codepoint is empty symbol
     //_fontSize is specified in pixels
-    double GetAscent(TT_Parser::Font* _font, int _codepoint)
+    double GetAscent(Font* _font, int _codepoint)
     {
-        TT_Parser::HEAD_Table* head = reinterpret_cast<TT_Parser::HEAD_Table*>(GetTable(_font, TT_Parser::HEAD_TABLE));
-        TT_Parser::GLYF_Table* glyf = reinterpret_cast<TT_Parser::GLYF_Table*>(GetTable(_font, TT_Parser::GLYF_TABLE));
+       HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
+       GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
 
-        void* glyph = GetGlyph(_font, _codepoint);
+       void* glyph = GetGlyph(_font, _codepoint);
 
-        if (Is(glyph, TT_Parser::EMPTY_GLYPH))
-        {
-            return INT_MAX;
-        }
-        else if (Is(glyph, TT_Parser::SIMPLE_GLYPH))
-        {
-            return reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph)->MaxY;
-        }
-        else
-        {
-            return reinterpret_cast<TT_Parser::CompositeGlyph*>(glyph)->MaxY;
-        }
+       if (Is(glyph, EMPTY_GLYPH))
+       {
+           return INT_MAX;
+       }
+       else if (Is(glyph, SIMPLE_GLYPH))
+       {
+           return reinterpret_cast<SimpleGlyph*>(glyph)->MaxY;
+       }
+       else
+       {
+           return reinterpret_cast<CompositeGlyph*>(glyph)->MaxY;
+       }
     }
 
     //(PUBLIC)
@@ -1608,109 +1550,109 @@ namespace TT_Parser
     //returns positive value if the lowest graphemic point of the string is above the baseline
     //returns INT_MAX if the _codepoint represents an empty glyph
     //_fontSize is specified in pixels
-    double GetDescent(TT_Parser::Font* _font, const int _codepoint)
+    double GetDescent(Font* _font, const int _codepoint)
     {
-        TT_Parser::HEAD_Table* head = reinterpret_cast<TT_Parser::HEAD_Table*>(GetTable(_font, TT_Parser::HEAD_TABLE));
-        TT_Parser::GLYF_Table* glyf = reinterpret_cast<TT_Parser::GLYF_Table*>(GetTable(_font, TT_Parser::GLYF_TABLE));
+       HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
+       GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
 
-        void* glyph = GetGlyph(_font, _codepoint);
+       void* glyph = GetGlyph(_font, _codepoint);
 
-        if (Is(glyph, TT_Parser::EMPTY_GLYPH))
-        {
-            return INT_MAX;
-        }
-        else if (Is(glyph, TT_Parser::SIMPLE_GLYPH))
-        {
-            return reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph)->MinY;
-        }
-        else
-        {
-            return reinterpret_cast<TT_Parser::CompositeGlyph*>(glyph)->MinY;
-        }
+       if (Is(glyph, EMPTY_GLYPH))
+       {
+           return INT_MAX;
+       }
+       else if (Is(glyph, SIMPLE_GLYPH))
+       {
+           return reinterpret_cast<SimpleGlyph*>(glyph)->MinY;
+       }
+       else
+       {
+           return reinterpret_cast<CompositeGlyph*>(glyph)->MinY;
+       }
     }
 
     //(PUBLIC)
     //returns the distance (in Funit-s) from the (baseline) to (the highest graphemic point of the string)
     //returns negative value if the highest graphemic point of the string is below the baseline
     //_fontSize is specified in pixels
-    double GetAscent(TT_Parser::Font* _font, const std::wstring& _string)
+    double GetAscent(Font* _font, const std::wstring& _string)
     {
-        TT_Parser::HEAD_Table* head = reinterpret_cast<TT_Parser::HEAD_Table*>(GetTable(_font, TT_Parser::HEAD_TABLE));
-        TT_Parser::GLYF_Table* glyf = reinterpret_cast<TT_Parser::GLYF_Table*>(GetTable(_font, TT_Parser::GLYF_TABLE));
+       HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
+       GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
 
-        int maxY = -1;
+       int maxY = -1;
 
-        for (int i = 0; i < _string.length(); i++)
-        {
-            void* glyph = GetGlyph(_font, _string[i]);
+       for (int i = 0; i < _string.length(); i++)
+       {
+           void* glyph = GetGlyph(_font, _string[i]);
 
-            if (Is(glyph, TT_Parser::EMPTY_GLYPH))
-            {
-                continue;
-            }
-            else if (Is(glyph, TT_Parser::SIMPLE_GLYPH))
-            {
-                TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
+           if (Is(glyph, EMPTY_GLYPH))
+           {
+               continue;
+           }
+           else if (Is(glyph, SIMPLE_GLYPH))
+           {
+               SimpleGlyph* glyph_ = reinterpret_cast<SimpleGlyph*>(glyph);
 
-                if (maxY == -1 || glyph_->MaxY > maxY)
-                {
-                    maxY = glyph_->MaxY;
-                }
-            }
-            else
-            {
-                TT_Parser::CompositeGlyph* glyph_ = reinterpret_cast<TT_Parser::CompositeGlyph*>(glyph);
+               if (maxY == -1 || glyph_->MaxY > maxY)
+               {
+                   maxY = glyph_->MaxY;
+               }
+           }
+           else
+           {
+               CompositeGlyph* glyph_ = reinterpret_cast<CompositeGlyph*>(glyph);
 
-                if (maxY == -1 || glyph_->MaxY > maxY)
-                {
-                    maxY = glyph_->MaxY;
-                }
-            }
-        }
+               if (maxY == -1 || glyph_->MaxY > maxY)
+               {
+                   maxY = glyph_->MaxY;
+               }
+           }
+       }
 
-        return maxY;
+       return maxY;
     }
 
     //(PUBLIC)
     //returns the distance (in Funit-s) from the (baseline) to (the lowest graphemic point of the string)
     //returns positive value if the lowest graphemic point of the string is above the baseline
     //_fontSize is specified in pixels
-    double GetDescent(TT_Parser::Font* _font, const std::wstring& _string)
+    double GetDescent(Font* _font, const std::wstring& _string)
     {
-        TT_Parser::HEAD_Table* head = reinterpret_cast<TT_Parser::HEAD_Table*>(GetTable(_font, TT_Parser::HEAD_TABLE));
-        TT_Parser::GLYF_Table* glyf = reinterpret_cast<TT_Parser::GLYF_Table*>(GetTable(_font, TT_Parser::GLYF_TABLE));
+       HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
+       GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
 
-        int minY = -1;
+       int minY = -1;
 
-        for (int i = 0; i < _string.length(); i++)
-        {
-            void* glyph = GetGlyph(_font, _string[i]);
+       for (int i = 0; i < _string.length(); i++)
+       {
+           void* glyph = GetGlyph(_font, _string[i]);
 
-            if (Is(glyph, TT_Parser::EMPTY_GLYPH))
-            {
-                continue;
-            }
-            else if (Is(glyph, TT_Parser::SIMPLE_GLYPH))
-            {
-                TT_Parser::SimpleGlyph* glyph_ = reinterpret_cast<TT_Parser::SimpleGlyph*>(glyph);
+           if (Is(glyph, EMPTY_GLYPH))
+           {
+               continue;
+           }
+           else if (Is(glyph, SIMPLE_GLYPH))
+           {
+               SimpleGlyph* glyph_ = reinterpret_cast<SimpleGlyph*>(glyph);
 
-                if (minY == -1 || glyph_->MinY < minY)
-                {
-                    minY = glyph_->MinY;
-                }
-            }
-            else
-            {
-                TT_Parser::CompositeGlyph* glyph_ = reinterpret_cast<TT_Parser::CompositeGlyph*>(glyph);
+               if (minY == -1 || glyph_->MinY < minY)
+               {
+                   minY = glyph_->MinY;
+               }
+           }
+           else
+           {
+               CompositeGlyph* glyph_ = reinterpret_cast<CompositeGlyph*>(glyph);
 
-                if (minY == -1 || glyph_->MinY < minY)
-                {
-                    minY = glyph_->MinY;
-                }
-            }
-        }
+               if (minY == -1 || glyph_->MinY < minY)
+               {
+                   minY = glyph_->MinY;
+               }
+           }
+       }
 
-        return minY;
+       return minY;
     }
 
     //(PUBLIC)
@@ -1721,7 +1663,7 @@ namespace TT_Parser
     //the specified character (codepoint) exists in the file ->
     int GetAdvanceWidth(const Font* _font, int _characterCode)
     {
-        HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
+       HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
 
         if (_characterCode < 0)
         {
@@ -1739,28 +1681,28 @@ namespace TT_Parser
     //the specified character (codepoint) does not exist in the file ->
     int GetKerning(const Font* _font, int _codepoint1, int _codepoint2)
     {
-        KERN_Table* kern = reinterpret_cast<KERN_Table*>(GetTable(_font, KERN_TABLE));
+       KERN_Table* kern = reinterpret_cast<KERN_Table*>(GetTable(_font, KERN_TABLE));
 
-        if (kern == nullptr)
-        {
-            return INT_MIN;
-        }
+       if (kern == nullptr)
+       {
+           return INT_MIN;
+       }
 
-        KERN_Subtable_Format0* subtable = reinterpret_cast<KERN_Subtable_Format0*>(kern->Subtables[0]);
+       KERN_Subtable_Format0* subtable = reinterpret_cast<KERN_Subtable_Format0*>(kern->Subtables[0]);
 
-        int glyphIndex1 = GetGlyphIndex(_font, _codepoint1);
-        int glyphIndex2 = GetGlyphIndex(_font, _codepoint2);
+       int glyphIndex1 = GetGlyphIndex(_font, _codepoint1);
+       int glyphIndex2 = GetGlyphIndex(_font, _codepoint2);
 
-        //(POTENTIAL-OPTIMIZATION)
-        for (int i = 0; i < subtable->NumberOfPairs; i++)
-        {
-            if (subtable->Pairs[i].Left == glyphIndex1 && subtable->Pairs[i].Right == glyphIndex2)
-            {
-                return subtable->Pairs[i].Value;
-            }
-        }
+       //(POTENTIAL-OPTIMIZATION)
+       for (int i = 0; i < subtable->NumberOfPairs; i++)
+       {
+           if (subtable->Pairs[i].Left == glyphIndex1 && subtable->Pairs[i].Right == glyphIndex2)
+           {
+               return subtable->Pairs[i].Value;
+           }
+       }
 
-        return INT_MIN;
+       return INT_MIN;
     }
 
     //(PUBLIC)
