@@ -80,7 +80,7 @@ PUBLIC API
 
         void DrawCharacter(
             int _characterIndex,
-            void* _glyph = nullptr,
+            void* _glyph,
             TT_Parser::Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
@@ -92,15 +92,15 @@ PUBLIC API
             unsigned char _characterR,
             unsigned char _characterG,
             unsigned char _characterB,
-            double _composite_X_Offset = 0.0, //(INTERNAL)
-            double _composite_Y_Offset = 0.0, //(INTERNAL)
-            double _composite_X_Scale = 0.0, //(INTERNAL)
-            double _composite_Y_Scale = 0.0) //(INTERNAL)
+            double _composite_X_Offset, //(INTERNAL)
+            double _composite_Y_Offset, //(INTERNAL)
+            double _composite_X_Scale, //(INTERNAL)
+            double _composite_Y_Scale) //(INTERNAL)
 
         //only the C++ version has this function 
         void DrawCharacter(
             int _characterIndex,
-            void* _glyph = nullptr,
+            void* _glyph,
             TT_Parser::Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
