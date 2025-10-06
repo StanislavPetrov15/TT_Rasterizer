@@ -1,7 +1,10 @@
 GENERAL NOTES
 
-  - the library has two versions (C and C++) - (Parser.c + Rasterizer.c) and (Parser.cpp + Rasterizer.cpp)  
-   
+  - the library has two versions (C and C++) - there is no functional difference between them (except 2 function overloads that are not in the C version)
+  - the C version consists of "Parser.c" and "Rasterizer.c" 
+  - the C++ version consists of "Parser.cpp" and "Rasterizer.cpp" 
+  - there are two examples files - one for C and one for C++
+    
   - the library does not depend on third-party code; it depends only on few functions in the C/C++ standard library
 
   - software rasterizer (it does not use hardware acceleration)
@@ -140,10 +143,6 @@ PUBLIC API
             double _fontSize,
             RGBA _textColor,
             int _maxGraphemicX)
-   
-        double GetGraphemicWidth(const Font* _font, wchar_t _character, double _fontSize)
-
-        double GetGraphemicHeight(const Font* _font, wchar_t _character, double _fontSize)
    
         double GetGraphemicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
    
