@@ -80,8 +80,8 @@ PUBLIC API
 
         void DrawCharacter(
             int _characterIndex,
-            void* _glyph,
-            Font* _font,
+            const void* _glyph,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -100,8 +100,8 @@ PUBLIC API
         //only the C++ version has this function 
         void DrawCharacter(
             int _characterIndex,
-            void* _glyph,
-            Font* _font,
+            const void* _glyph,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -114,7 +114,7 @@ PUBLIC API
     
         void DrawString(
             const wchar_t* _string,
-            Font* _font,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -130,7 +130,7 @@ PUBLIC API
          //only the C++ version has this function 
          void DrawString(
             const wchar_t* _string,
-            Font* _font,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -141,15 +141,15 @@ PUBLIC API
             RGBA _textColor,
             int _maxGraphemicX)
    
-        double GetGraphemicWidth(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
+        double GetGraphemicWidth(const Font* _font, wchar_t _character, double _fontSize)
 
-        double GetGraphemicHeight(TT_Parser::Font* _font, wchar_t _character, double _fontSize)
+        double GetGraphemicHeight(const Font* _font, wchar_t _character, double _fontSize)
    
-        double GetGraphemicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+        double GetGraphemicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
    
-        double GetGraphemicHeight(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+        double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fontSize)
 
-        double GetTypographicWidth(TT_Parser::Font* _font, const std::wstring& _string, double _fontSize)
+        double GetTypographicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
    
 TERMINOLOGY (specific to TT_Rasterizer)
 
