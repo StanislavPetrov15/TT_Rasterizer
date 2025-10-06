@@ -592,7 +592,7 @@ namespace TT
     //(LOCAL-TO DrawCharacter)
     std::string to_string(unsigned int _number)
     {
-        char array [33/*enough for 32-bit number*/];
+        char array [33];
         sprintf(array, "%d", _number);
         return std::string(array);
     }
@@ -602,7 +602,7 @@ namespace TT
     //(LOCAL-TO DrawCharacter)
     std::string to_string(double _number)
     {
-        char array [33];
+        char array [33/*enough for 32-bit number*/];
         sprintf(array, "%.2f", _number);
         return std::string(array);
     }
@@ -1795,9 +1795,9 @@ namespace TT
     }
 
     //_fontSize is specified in pixels
-    double GetScale(TT::Font* _font, double _fontSize)
+    double GetScale(Font* _font, double _fontSize)
     {
-        TT::HEAD_Table* head = reinterpret_cast<TT::HEAD_Table*>(GetTable(_font, TT::HEAD_TABLE));
+        HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
         return _fontSize / (double)head->UnitsPerEm;
     }
 
@@ -1871,7 +1871,7 @@ namespace TT
     void DrawCharacter(
             int _characterIndex,
             void* _glyph,
-            TT::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             enum ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -1915,19 +1915,19 @@ namespace TT
             //(STATE) _characterIndex is a glyph index (in the table 'glyf')
         else
         {
-            TT::GLYF_Table* glyf = reinterpret_cast<TT::GLYF_Table*>(GetTable(_font, TT::GLYF_TABLE));
+            GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
             glyph = glyf->Glyphs[0 - _characterIndex];
         }
 
         ///IF THE GLYPH IS EMPTY (NON-CONTOUR GLYPH)
-        if (TT::Is(glyph, TT::EMPTY_GLYPH))
+        if (Is(glyph, EMPTY_GLYPH))
         {
             return;
         }
             ///IF THE GLYPH IS SIMPLE
-        else if (TT::Is(glyph, TT::SIMPLE_GLYPH))
+        else if (Is(glyph, SIMPLE_GLYPH))
         {
-            TT::SimpleGlyph* glyph_ = reinterpret_cast<TT::SimpleGlyph*>(glyph);
+            SimpleGlyph* glyph_ = reinterpret_cast<SimpleGlyph*>(glyph);
 
             int lsb;
 
@@ -1937,7 +1937,7 @@ namespace TT
             }
             else
             {
-                lsb = TT::GetLeftSideBearing(_font, _characterIndex);
+                lsb = GetLeftSideBearing(_font, _characterIndex);
             }
 
             ///CONTOUR REORDERING
@@ -3200,11 +3200,11 @@ namespace TT
             ///(STATE) THE GLYPH IS COMPOSITE
         else
         {
-            TT::CompositeGlyph* glyph_ = reinterpret_cast<TT::CompositeGlyph*>(glyph);
+            CompositeGlyph* glyph_ = reinterpret_cast<CompositeGlyph*>(glyph);
 
             for (int i = 0; i < glyph_->NumberOfComponents; i++)
             {
-                TT::GlyphComponent* component = glyph_->Components[i];
+                GlyphComponent* component = glyph_->Components[i];
 
                 double x_scale;
                 double y_scale;
@@ -3291,7 +3291,7 @@ namespace TT
     /* _characterIndex is a Unicode codepoint if it's a positive value, and glyph index (within the given font file) if it's a negative value;
       the function is non-validating - if _characterIndex is a Unicode codepoint, then it must be a valid Unicode codepoint and if
       _characterIndex is a glyph index, then it must be an index within the valid for the specific font range */
-    //_glyph is a TT::SimpleGlyph or TT::CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
+    //_glyph is a SimpleGlyph or CompositeGlyph object; if this parameter is used, then _characterIndex is ignored
     //_canvas is (a RGBA or BGRA pixel array) in which the character is drawn
     //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
     //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
@@ -3307,7 +3307,7 @@ namespace TT
     void DrawCharacter(
             int _characterIndex,
             void* _glyph,
-            TT::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3324,18 +3324,18 @@ namespace TT
 
     //(PUBLIC)
     //returns the width of the string in pixels (with the left-side bearing of the first character and the right-side bearing of the last character)
-    double GetTypographicWidth(TT::Font* _font, const wchar_t* _string, double _fontSize)
+    double GetTypographicWidth(Font* _font, const wchar_t* _string, double _fontSize)
     {
         int currentWidth = 0;
 
-        TT::HMTX_Table* hmtx = reinterpret_cast<TT::HMTX_Table*>(GetTable(_font, TT::HMTX_TABLE));
+        HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
 
         //the first character in the string
 
         int index = GetGlyphIndex(_font, _string[0]);
         currentWidth += hmtx->HorizontalMetrics[index].AdvanceWidth;
 
-        double firstCharacterLeftSideBearing = TT::GetLeftSideBearing(_font, _string[0]);
+        double firstCharacterLeftSideBearing = GetLeftSideBearing(_font, _string[0]);
 
         int stringLength = wcslen(_string);
 
@@ -3354,7 +3354,7 @@ namespace TT
 
         //the last character in the string
 
-        double lastCharacterRightSideBearing = TT::GetRightSideBearing(_font, _string[stringLength - 1]);
+        double lastCharacterRightSideBearing = GetRightSideBearing(_font, _string[stringLength - 1]);
 
         if (lastCharacterRightSideBearing < 0)
         {
@@ -3370,11 +3370,11 @@ namespace TT
     //returns the width of the string in pixels (without the left-side bearing of the first character and the right-side bearing of the last character)
     //_fontSize is specified in pixels
     //_string.length() >= 1 ->
-    double GetGraphemicWidth(TT::Font* _font, const wchar_t* _string, double _fontSize)
+    double GetGraphemicWidth(Font* _font, const wchar_t* _string, double _fontSize)
     {
         //(STATE) the string has more than 1 character
 
-        TT:HMTX_Table* hmtx = reinterpret_cast<TT::HMTX_Table*>(GetTable(_font, TT::HMTX_TABLE));
+        TT:HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
 
         double SCALE = GetScale(_font, _fontSize);
 
@@ -3391,7 +3391,7 @@ namespace TT
 
             if (i < stringLength - 1)
             {
-                int kerning = TT::GetKerning(_font, _string[i], _string[i + 1]);
+                int kerning = GetKerning(_font, _string[i], _string[i + 1]);
 
                 //if there is no kerning between the two characters
                 if (kerning == INT_MIN)
@@ -3417,7 +3417,7 @@ namespace TT
 
         ///left-side bearing of the first character in the string
 
-        double firstCharacterLeftSideBearing = TT::GetLeftSideBearing(_font, _string[0]);
+        double firstCharacterLeftSideBearing = GetLeftSideBearing(_font, _string[0]);
 
         //negative left-side bearing
         if (firstCharacterLeftSideBearing < 0)
@@ -3432,7 +3432,7 @@ namespace TT
 
         ///right-side bearing of the last character in the string
 
-        double lastCharacterRightSideBearing = TT::GetRightSideBearing(_font,  _string[stringLength - 1]);
+        double lastCharacterRightSideBearing = GetRightSideBearing(_font,  _string[stringLength - 1]);
 
         //negative right-side bearing
         if (lastCharacterRightSideBearing < 0)
@@ -3453,7 +3453,7 @@ namespace TT
     //(PUBLIC)
     //returns the graphemic height of the string in pixels (the distance between the lowest and the highest graphemic point in the string)
     //_fontSize is specified in pixels
-    double GetGraphemicHeight(TT::Font* _font, const wchar_t* _string, double _fontSize)
+    double GetGraphemicHeight(Font* _font, const wchar_t* _string, double _fontSize)
     {
         int minY = -1;
         int maxY = -1;
@@ -3463,13 +3463,13 @@ namespace TT
         {
             void* glyph = GetGlyph(_font, _string[i]);
 
-            if (TT::Is(glyph, TT::EMPTY_GLYPH))
+            if (Is(glyph, EMPTY_GLYPH))
             {
                 continue;
             }
-            else if (TT::Is(glyph, TT::SIMPLE_GLYPH))
+            else if (Is(glyph, SIMPLE_GLYPH))
             {
-                TT::SimpleGlyph* glyph_ = reinterpret_cast<TT::SimpleGlyph*>(glyph);
+                SimpleGlyph* glyph_ = reinterpret_cast<SimpleGlyph*>(glyph);
 
                 if (minY == -1 || glyph_->MinY < minY)
                 {
@@ -3483,7 +3483,7 @@ namespace TT
             }
             else
             {
-                TT::CompositeGlyph* glyph_ = reinterpret_cast<TT::CompositeGlyph*>(glyph);
+                CompositeGlyph* glyph_ = reinterpret_cast<CompositeGlyph*>(glyph);
 
                 if (minY == -1 || glyph_->MinY < minY)
                 {
@@ -3515,7 +3515,7 @@ namespace TT
              and the parameters must have correct values */
     void DrawString(
             const wchar_t* _string,
-            TT::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3529,8 +3529,8 @@ namespace TT
             int _maxGraphemicX = -1)
     {
         double SCALE = GetScale(_font, _fontSize);
-        TT::HMTX_Table* hmtx = reinterpret_cast<TT::HMTX_Table*>(GetTable(_font, TT::HMTX_TABLE));
-        int lsb = TT::GetLeftSideBearing(_font, _string[0]);
+        HMTX_Table* hmtx = reinterpret_cast<HMTX_Table*>(GetTable(_font, HMTX_TABLE));
+        int lsb = GetLeftSideBearing(_font, _string[0]);
         _horizontalPosition -= lsb * SCALE;
 
         int stringLength = wcslen(_string);
@@ -3561,7 +3561,7 @@ namespace TT
             int stringLength = wcslen(_string);
             if (i < stringLength - 1)
             {
-                int kerning = TT::GetKerning(_font, _string[i], _string[i + 1]);
+                int kerning = GetKerning(_font, _string[i], _string[i + 1]);
 
                 //if there is kerning between the two characters
                 if (kerning != INT_MIN)
@@ -3606,7 +3606,7 @@ namespace TT
         and the parameters must have correct values */
     void DrawString(
             const wchar_t* _string,
-            TT::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
