@@ -1795,7 +1795,7 @@ namespace TT
     }
 
     //_fontSize is specified in pixels
-    double GetScale(Font* _font, double _fontSize)
+    double GetScale(const Font* _font, double _fontSize)
     {
         HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
         return _fontSize / (double)head->UnitsPerEm;
@@ -1871,7 +1871,7 @@ namespace TT
     void DrawCharacter(
             int _characterIndex,
             void* _glyph,
-            Font* _font,
+            const Font* _font,
             unsigned char* _canvas,
             enum ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3307,7 +3307,7 @@ namespace TT
     void DrawCharacter(
             int _characterIndex,
             void* _glyph,
-            Font* _font,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3324,7 +3324,7 @@ namespace TT
 
     //(PUBLIC)
     //returns the width of the string in pixels (with the left-side bearing of the first character and the right-side bearing of the last character)
-    double GetTypographicWidth(Font* _font, const wchar_t* _string, double _fontSize)
+    double GetTypographicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
     {
         int currentWidth = 0;
 
@@ -3370,7 +3370,7 @@ namespace TT
     //returns the width of the string in pixels (without the left-side bearing of the first character and the right-side bearing of the last character)
     //_fontSize is specified in pixels
     //_string.length() >= 1 ->
-    double GetGraphemicWidth(Font* _font, const wchar_t* _string, double _fontSize)
+    double GetGraphemicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
     {
         //(STATE) the string has more than 1 character
 
@@ -3453,7 +3453,7 @@ namespace TT
     //(PUBLIC)
     //returns the graphemic height of the string in pixels (the distance between the lowest and the highest graphemic point in the string)
     //_fontSize is specified in pixels
-    double GetGraphemicHeight(Font* _font, const wchar_t* _string, double _fontSize)
+    double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fontSize)
     {
         int minY = -1;
         int maxY = -1;
@@ -3515,7 +3515,7 @@ namespace TT
              and the parameters must have correct values */
     void DrawString(
             const wchar_t* _string,
-            Font* _font,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -3606,7 +3606,7 @@ namespace TT
         and the parameters must have correct values */
     void DrawString(
             const wchar_t* _string,
-            Font* _font,
+            const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
