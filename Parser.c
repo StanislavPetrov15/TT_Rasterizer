@@ -1,5 +1,3 @@
-///* destructors
-
 //supported tables - cmap, glyf, head, hhea, hmtx, kern, loca, maxp and OS/2
 
 //(PUBLIC)
