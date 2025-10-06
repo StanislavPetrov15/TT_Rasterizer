@@ -80,7 +80,7 @@ PUBLIC API
 
         void DrawCharacter(
             int _characterIndex,
-            const void* _glyph,
+            void* _glyph,
             const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
@@ -100,7 +100,7 @@ PUBLIC API
         //only the C++ version has this function 
         void DrawCharacter(
             int _characterIndex,
-            const void* _glyph,
+            void* _glyph,
             const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
