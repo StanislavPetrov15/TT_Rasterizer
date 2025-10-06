@@ -1524,7 +1524,7 @@ namespace TT
     //returns negative value if the highest graphemic point of the character is below the baseline
     //returns INT_MAX if the _codepoint is empty symbol
     //_fontSize is specified in pixels
-    double GetAscent(Font* _font, int _codepoint)
+    double GetAscent(const Font* _font, int _codepoint)
     {
        HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
        GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
@@ -1550,7 +1550,7 @@ namespace TT
     //returns positive value if the lowest graphemic point of the string is above the baseline
     //returns INT_MAX if the _codepoint represents an empty glyph
     //_fontSize is specified in pixels
-    double GetDescent(Font* _font, const int _codepoint)
+    double GetDescent(const Font* _font, const int _codepoint)
     {
        HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
        GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
@@ -1575,7 +1575,7 @@ namespace TT
     //returns the distance (in Funit-s) from the (baseline) to (the highest graphemic point of the string)
     //returns negative value if the highest graphemic point of the string is below the baseline
     //_fontSize is specified in pixels
-    double GetAscent(Font* _font, const std::wstring& _string)
+    double GetAscent(const Font* _font, const std::wstring& _string)
     {
        HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
        GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
@@ -1617,7 +1617,7 @@ namespace TT
     //returns the distance (in Funit-s) from the (baseline) to (the lowest graphemic point of the string)
     //returns positive value if the lowest graphemic point of the string is above the baseline
     //_fontSize is specified in pixels
-    double GetDescent(Font* _font, const std::wstring& _string)
+    double GetDescent(const Font* _font, const std::wstring& _string)
     {
        HEAD_Table* head = reinterpret_cast<HEAD_Table*>(GetTable(_font, HEAD_TABLE));
        GLYF_Table* glyf = reinterpret_cast<GLYF_Table*>(GetTable(_font, GLYF_TABLE));
