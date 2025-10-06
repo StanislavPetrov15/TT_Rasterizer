@@ -81,7 +81,7 @@ PUBLIC API
         void DrawCharacter(
             int _characterIndex,
             void* _glyph,
-            TT_Parser::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -101,7 +101,7 @@ PUBLIC API
         void DrawCharacter(
             int _characterIndex,
             void* _glyph,
-            TT_Parser::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -114,7 +114,7 @@ PUBLIC API
     
         void DrawString(
             const wchar_t* _string,
-            TT_Parser::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
@@ -130,7 +130,7 @@ PUBLIC API
          //only the C++ version has this function 
          void DrawString(
             const wchar_t* _string,
-            TT_Parser::Font* _font,
+            Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
             int _canvasWidth,
