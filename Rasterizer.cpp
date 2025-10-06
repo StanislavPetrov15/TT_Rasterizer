@@ -1870,7 +1870,7 @@ namespace TT
              value (if set) and the parameters must have correct values */
     void DrawCharacter(
             int _characterIndex,
-            void* _glyph,
+            const void* _glyph,
             const Font* _font,
             unsigned char* _canvas,
             enum ColorComponentOrder _colorComponentOrder,
@@ -3306,7 +3306,7 @@ namespace TT
          value (if set) and the parameters must have correct values */
     void DrawCharacter(
             int _characterIndex,
-            void* _glyph,
+            const void* _glyph,
             const Font* _font,
             unsigned char* _canvas,
             ColorComponentOrder _colorComponentOrder,
