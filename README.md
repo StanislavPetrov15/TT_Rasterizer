@@ -7,7 +7,7 @@ GENERAL NOTES
     
   - the library does not depend on third-party code; it depends only on few functions in the C/C++ standard library
 
-  - software rasterizer (it does not use hardware acceleration)
+  - software rasterizer (it does not use hardware acceleration) 
 
   - it implements gray-scale anti-aliasing
 
@@ -29,7 +29,7 @@ GENERAL NOTES
     - right-to-left languages scripts (i.e. Hebrew, Arabic, Syriac, Persian, Uighur, Urdu, etc)
     - vertical languages/scripts
     - color emojis
-    - character/string rotation
+    - character/string rotation (it will be implemented in near future)
     - hinting (highly unlikely that it will be implemented in future versions)
     - variable fonts (highly unlikely that it will be implemented in future versions)
 
@@ -37,8 +37,8 @@ GENERAL NOTES
 
   - the library does not validate the font files - it should be used only on trusted font files
 
-  - the library is tested on Windows 11 only, but since it does not have any dependencies it should produce the same results
-     on any other system that can produce C++14 code (with some small changes related to the C++ standard library)
+  - the library is tested on Windows only, but since it does not have any dependencies it should produce the same results
+     on any other system that can produce C99 and C++11 code 
 
   - a character or string is positioned at the baseline; for example if a character/string has Y set to 109, then the baseline of
     the character/string has vertical position 109 (row with index 109) in the canvas
