@@ -101,7 +101,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
         SetDIBitsToDevice(hdc, 0, 0, WindowWidth, WindowHeight, 0, 0, 0, WindowHeight, TT_Canvas, (BITMAPINFO*)&header, DIB_RGB_COLORS);
 
-        free(TT_Canvas);
+        ReleaseFont(font);
 
         EndPaint(hwnd, &ps);
 
