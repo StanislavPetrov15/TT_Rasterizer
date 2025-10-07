@@ -1,9 +1,4 @@
 GENERAL NOTES
-
-  - the library has two versions (C and C++) - there is no functional difference between them (except 2 function overloads that are not in the C version)
-  - the C version consists of "Parser.c" and "Rasterizer.c" 
-  - the C++ version consists of "Parser.cpp" and "Rasterizer.cpp" 
-  - there are two examples files - one for C and one for C++
     
   - the library does not depend on third-party code; it depends only on few functions in the C/C++ standard library
 
