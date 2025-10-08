@@ -97,21 +97,6 @@ PUBLIC API
             double _composite_X_Scale, //(INTERNAL)
             double _composite_Y_Scale) //(INTERNAL)
 
-        //only the C++ version has this function 
-        void DrawCharacter(
-            int _characterIndex,
-            void* _glyph,
-            const Font* _font,
-            unsigned char* _canvas,
-            ColorComponentOrder _colorComponentOrder,
-            int _canvasWidth,
-            int _canvasHeight,
-            double _horizontalPosition,
-            double _verticalPosition,
-            double _fontSize,
-            RGBA _characterColor,
-            int _maxGraphemicX)
-    
         void DrawString(
             const wchar_t* _string,
             const Font* _font,
@@ -127,27 +112,13 @@ PUBLIC API
             unsigned char _textB,
             int _maxGraphemicX)
 
-         //only the C++ version has this function 
-         void DrawString(
-            const wchar_t* _string,
-            const Font* _font,
-            unsigned char* _canvas,
-            ColorComponentOrder _colorComponentOrder,
-            int _canvasWidth,
-            int _canvasHeight,
-            double _horizontalPosition,
-            double _verticalPosition,
-            double _fontSize,
-            RGBA _textColor,
-            int _maxGraphemicX)
-   
         double GetGraphemicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
    
         double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fontSize)
 
         double GetTypographicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
    
-TERMINOLOGY (specific to TT_Rasterizer)
+TERMINOLOGY 
 
    - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
    - (segmentoid) :: begin/end pixel of a segment
