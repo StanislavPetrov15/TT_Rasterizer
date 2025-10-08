@@ -3053,21 +3053,11 @@ void DrawCharacter(
 
                     int pixelType = EXTEROID;
 
-                    //(BLOCK) if the pixel is conturoid
-                    if (contour->IsFilled && coverage > 0)
+                    if (coverage > 0)
                     {
                         pixelType = CONTUROID;
                     }
-                    else if (!contour->IsFilled && coverage > 0)
-                    {
-                        pixelType = CONTUROID;
-                    }
-                        //(BLOCK) if the pixel is interior pixel
-                    else if (fillMode && contour->IsFilled)
-                    {
-                        pixelType = INTEROID;
-                    }
-                    else if (fillMode && !contour->IsFilled)
+                    else if (fillMode)
                     {
                         pixelType = INTEROID;
                     }
