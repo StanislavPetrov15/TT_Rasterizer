@@ -35,7 +35,7 @@ GENERAL NOTES
   - the library does not validate the font files - it should be used only on trusted font files
 
   - the library is tested on Windows only, but since it does not have any dependencies it should produce the same results
-     on any other system that can produce C99 and C++11 code 
+     on any other system that can produce C99
 
   - a character or string is positioned at the baseline; for example if a character/string has Y set to 109, then the baseline of
     the character/string has vertical position 109 (row with index 109) in the canvas
