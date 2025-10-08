@@ -2065,6 +2065,12 @@ void DrawCharacter(
             //the first element of the pair is a contour, and the second element is his 'most-direct' container contour
             pair* contourPairs = malloc(sizeof(pair) * numberOfContours);
 
+            for (int i = 0; i < numberOfContours; i++)
+            {
+                contourPairs[i].Key = NULL;
+                contourPairs[i].Value = NULL;
+            }
+           
             //determine the closest enclosing rectangles for every contour
             for (int i = 0; i < numberOfContours; i++)
             {
@@ -2128,7 +2134,7 @@ void DrawCharacter(
 
                 if (pair->Value != NULL)
                 {
-                    int containerIndex;
+                    int containerIndex = -1;
 
                     for (int n = 0; n < orderedContoursCount; n++)
                     {
