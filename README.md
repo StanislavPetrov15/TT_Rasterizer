@@ -1,6 +1,6 @@
 GENERAL NOTES
     
-  - the library does not depend on third-party code; it depends only on few functions in the C/C++ standard library
+  - the library does not depend on third-party code; it depends only on few functions in the C standard library
 
   - it's C files only, no headers for now as i don't use them in my personal projects 
 
