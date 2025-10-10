@@ -9,16 +9,10 @@
 int WindowWidth = 800;
 int WindowHeight = 500;
 HWND Window;
-struct Font* font;
 
 LRESULT CALLBACK EventHandler(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hinstance, LPSTR lpstr, int n)
 {
-    FILE* file = NULL;
-    wchar_t* filename = ...; //(!!!) SET PATH TO THE .ttf FILE HERE
-    _wfopen_s(&file, filename, L"rb");
-    font = ParseFont(file);
-
     SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE); //needed for correct visualization
 
     WNDCLASS wc = {};
@@ -42,8 +36,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hinstance, LPSTR lpstr, int n)
         TranslateMessage(&message);
         DispatchMessage(&message);
     }
-
-    free(font);
 
     return 0;
 }
@@ -76,6 +68,12 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         header.biSizeImage = 0;
         header.biClrUsed = 0;
         header.biClrImportant = 0;
+
+        struct Font* font;
+        FILE* file = NULL;
+        wchar_t* filename = ...; //(!!!) SET PATH TO THE .ttf FILE HERE
+        _wfopen_s(&file, filename, L"rb");
+        font = ParseFont(file);
 
         unsigned char* TT_Canvas = malloc(WindowWidth * WindowHeight * 4);
 
