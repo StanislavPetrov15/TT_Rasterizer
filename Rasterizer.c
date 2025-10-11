@@ -25,6 +25,10 @@ int MetaCanvasWidth;
 int MetaCanvasHeight;
 int PreviousPixelX;
 int PreviousPixelY;
+int StringWidth = 0; //in pixels; used for horizontal (string gradients)
+int StringHeight = 0; //in pixels; used for vertical (string gradients)
+int StringBeginX =  0; //in pixels; used for horizontal (string gradients)
+int StringBeginY = 0; //in pixels; used for vertical (string gradients)
 
 /* two-stage drawing is needed (first in a meta-canvas byte array, then in the real canvas); this allows drawing over non-uniform background (
    consisting of many different colors) and also allows proper drawing of certain characters - for example Unicode codepoint Dx295 in
@@ -43,6 +47,26 @@ int PreviousPixelY;
    - bits [0..7] pixel type (determined in stage 1): 0 :: exteroid | 1 :: conturoid | 2 :: interoid
    - bits [8..15] coverage */
 
+enum GlyphColorizationMode
+{
+    //solid color
+    GCM_SOLID,
+
+    //horizontal gradient between two or more colors
+    GCM_HORIZONTAL_GRADIENT,
+
+    //vertical gradient between two or more colors
+    GCM_VERTICAL_GRADIENT,
+
+    //(INTERNAL)
+    GCM_S_HORIZONTAL_GRADIENT,
+
+    //(INTERNAL)
+    GCM_S_VERTICAL_GRADIENT,
+};
+
+typedef enum GlyphColorizationMode GlyphColorizationMode;
+
 //(PUBLIC)
 
 enum ColorComponentOrder
@@ -50,6 +74,36 @@ enum ColorComponentOrder
     RGBA_ORDER,
     BGRA_ORDER
 };
+
+typedef enum ColorComponentOrder ColorComponentOrder;
+
+enum StringColorizationMode
+{
+    //each (non-empty) glyph in the string has the same color
+    SCM_SOLID_IDENTICAL,
+
+    //each (non-empty) glyph in the string has an associated color; repeated in series
+    SCM_SOLID_INDIVIDUAL,
+
+    //each word in the string has an associated color; repeated in series
+    SCM_SOLID_WORD,
+
+    /* horizontal gradient between two or more colors; the gradient is applied to each glyph
+       in the string, not to the string as a whole */
+    SCM_HORIZONTAL_GRADIENT_GLYPH,
+
+    /* vertical gradient between two or more colors; the gradient is applied to each glyph
+       in the string, not to the string as a whole */
+    SCM_VERTICAL_GRADIENT_GLYPH,
+
+    //horizontal gradient between two or more colors; the gradient is applied to the string as a whole
+    SCM_HORIZONTAL_GRADIENT_STRING,
+
+    //vertical gradient between two or more colors; the gradient is applied to the string as a whole
+    SCM_VERTICAL_GRADIENT_STRING
+};
+
+typedef enum StringColorizationMode StringColorizationMode;
 
 struct Bitex
 {
@@ -115,13 +169,13 @@ bool RectangleContainsRectangle(const tt_Rectangle* _rectangle1, const tt_Rectan
            RectangleContainsPoint(_rectangle1, p4.X, p4.Y);
 }
 
-struct pair
+struct ContourPair
 {
-    void* Key;
-    void* Value;
+    Contour* Contour;
+    Contour* DirectContainer;
 };
 
-typedef struct pair pair;
+typedef struct ContourPair ContourPair;
 
 struct tt_rgba
 {
@@ -134,148 +188,148 @@ struct tt_rgba
 typedef struct tt_rgba tt_rgba;
 
 unsigned char Colors[] =
-{
-    240, 248, 255, 0, //AliceBlue
-    250, 235, 215, 0, //AntiqueWhite
-    0, 255, 255, 0, //Aqua
-    127, 255, 212, 0, //Aquamarine
-    240, 255, 255, 0, //Azure
-    245, 245, 220, 0, //Beige
-    255, 228, 196, 0, //Bisque
-    0, 0, 0, 0, //Black
-    255, 235, 205, 0, //BlanchedAlmond
-    0, 0, 255, 0, //Blue
-    138, 43, 226, 0, //BlueViolet
-    165,  42,  42, 0, //Brown
-    222, 184, 135, 0, //Burlywood
-    95, 158, 160, 0, //CadetBlue
-    127, 255, 0, 0, //Chartreuse
-    210, 105, 30, 0, //Chocolate
-    255, 127, 80, 0, //Coral
-    100, 149, 237, 0, //CornflowerBlue
-    255, 248, 220, 0, //Cornsilk
-    220, 20, 60, 0, //Crimson
-    0, 255, 255, 0, //Cyan
-    0, 0, 139, 0, //DarkBlue
-    0, 139, 139, 0, //DarkCyan
-    184, 134, 11, 0, //DarkGoldenrod
-    169, 169, 169, 0, //DarkGray
-    0, 100, 0, 0, //DarkGreen
-    189, 183, 107, 0, //DarkKhaki
-    139, 0, 139, 0, //DarkMagenta
-    85, 107, 47, 0, //DarkOliveGreen
-    255, 140, 0, 0, //DarkOrange
-    153, 50, 204, 0, //DarkOrchid
-    139, 0, 0, 0, //DarkRed
-    233, 150, 122, 0, //DarkSalmon
-    143, 188, 143, 0, //DarkSeaGreen
-    72, 61, 139, 0, //DarkSlateBlue
-    47, 79, 79, 0, //DarkSlateGray
-    0, 206, 209, 0, //DarkTurquoise
-    148, 0, 211, 0, //DarkViolet
-    255, 20, 147, 0, //DeepPink
-    0, 191, 255, 0, //DeepSkyBlue
-    105, 105, 105, 0, //DimGray
-    30, 144, 255, 0, //DodgerBlue
-    178, 34, 34, 0, //Firebrick
-    255, 250, 240, 0, //FloralWhite
-    34, 139, 34, 0, //ForestGreen
-    255, 0, 255, 0, //Fuchsia
-    220, 220, 220, 0, //Gainsboro
-    248, 248, 255, 0, //GhostWhite
-    255, 215, 0, 0, //Gold
-    218, 165, 32, 0, //Goldenrod
-    128, 128, 128, 0, //Gray
-    0, 255, 0, 0, //Green
-    173, 255, 47, 0, //Green
-    240, 255, 240, 0, //HoneyDew
-    255, 105, 180, 0, //HotPink
-    255, 0, 0, 0, //IndianRed
-    75, 0, 130, 0, //Indigo
-    255, 255, 240, 0, //Ivory
-    240, 230, 140, 0, //Khaki
-    230, 230, 250, 0, //Lavender
-    255, 240, 245, 0, //LavenderBlush
-    124, 252, 0, 0, //LawnGreen
-    255, 250, 205, 0, //LemonChiffon
-    173, 216, 230, 0, //LightBlue
-    240, 128, 128, 0, //LightCoral
-    224, 255, 255, 0, //LightCyan
-    250, 250, 210, 0, //LightGoldenrodYellow
-    211, 211, 211, 0, //LightGray
-    144, 238, 144, 0, //LightGreen
-    255, 182, 193, 0, //LightPink
-    255, 160, 122, 0, //LightSalmon
-    32, 178, 170, 0, //LightSeaGreen
-    135, 206, 250, 0, //LightSkyBlue
-    119, 136, 153, 0, //LightSlateGray
-    176, 196, 222, 0, //LightSteelBlue
-    255, 255, 224, 0, //LightYellow
-    0, 255, 0, 0, //Lime
-    50, 205, 50, 0, //LimeGreen
-    250, 240, 230, 0, //Linen
-    255, 0, 255, 0, //Magenta
-    128, 0, 0, 0, //Maroon
-    102, 205, 170, 0, //MediumAquamarine
-    0, 0, 205, 0, //MediumBlue
-    186, 85, 211, 0, //MediumOrchid
-    147, 112, 219, 0, //MediumPurple
-    123, 104, 238, 0, //MediumSlateBlue
-    0, 250, 154, 0, //MediumSpringGreen
-    72, 209, 204, 0, //MediumTurquoise
-    199, 21, 133, 0, //MediumVioletRed
-    25, 25, 112, 0, //MidnightBlue
-    245, 255, 250, 0, //MintCream
-    255, 228, 225, 0, //MistyRose
-    255, 228, 181, 0, //Moccasin
-    255, 222, 173, 0, //NavajoWhite
-    0, 0, 128, 0, //Navy
-    253, 245, 230, 0, //OldLace
-    128, 128, 0, 0, //Olive
-    107, 142, 35, 0, //OliveDrab
-    255, 165, 0, 0, //Orange
-    255, 69, 0, 0, //OrangeRed
-    218, 112, 214, 0, //Orchid
-    238, 232, 170, 0, //PaleGoldenrod
-    152, 251, 152, 0, //PaleGreen
-    175, 238, 238, 0, //PaleTurquoise
-    219, 112, 147, 0, //PaleVioletRed
-    255, 239, 213, 0, //PapayaWhip
-    255, 218, 185, 0, //PeachPuff
-    205, 133, 63, 0, //Peru
-    255, 192, 203, 0, //Pink
-    221, 160, 221, 0, //Plum
-    176, 224, 230, 0, //PowderBlue
-    128, 0, 128, 0, //Purple
-    255, 0, 0, 0, //Red
-    188, 143, 143, 0, //RosyBrown
-    65, 105, 225, 0, //RoyalBlue
-    139, 69, 19, 0, //SaddleBrown
-    250, 128, 114, 0, //Salmon
-    244, 164, 96, 0, //SandyBrown
-    46, 139, 87, 0, //SeaGreen
-    255, 245, 238, 0, //SeaShell
-    160, 82, 45, 0, //Sienna
-    192, 192, 192, 0, //Silver
-    135, 206, 235, 0, //SkyBlue
-    106, 90, 205, 0, //SlateBlue
-    112, 128, 144, 0, //SlateGray
-    255, 250, 250, 0, //Snow
-    0, 255, 127, 0, //SpringGreen
-    70, 130, 180, 0, //SteelBlue
-    210, 180, 140, 0, //Tan
-    0, 128, 128, 0, //Teal
-    216, 191, 216, 0, //Thistle
-    255, 99, 71, 0, //Tomato
-    64, 224, 208, 0, //Turquoise
-    238, 130, 238, 0, //Violet
-    245, 222, 179, 0, //Wheat
-    255, 255, 255, 0, //White
-    245, 245, 245, 0, //WhiteSmoke
-    255, 255, 0, 0, //Yellow
-    154, 205, 50, 0, //YellowGreen
-    0, 0, 0, 0 //InvalidValue
-};
+        {
+                240, 248, 255, 0, //AliceBlue
+                250, 235, 215, 0, //AntiqueWhite
+                0, 255, 255, 0, //Aqua
+                127, 255, 212, 0, //Aquamarine
+                240, 255, 255, 0, //Azure
+                245, 245, 220, 0, //Beige
+                255, 228, 196, 0, //Bisque
+                0, 0, 0, 0, //Black
+                255, 235, 205, 0, //BlanchedAlmond
+                0, 0, 255, 0, //Blue
+                138, 43, 226, 0, //BlueViolet
+                165,  42,  42, 0, //Brown
+                222, 184, 135, 0, //Burlywood
+                95, 158, 160, 0, //CadetBlue
+                127, 255, 0, 0, //Chartreuse
+                210, 105, 30, 0, //Chocolate
+                255, 127, 80, 0, //Coral
+                100, 149, 237, 0, //CornflowerBlue
+                255, 248, 220, 0, //Cornsilk
+                220, 20, 60, 0, //Crimson
+                0, 255, 255, 0, //Cyan
+                0, 0, 139, 0, //DarkBlue
+                0, 139, 139, 0, //DarkCyan
+                184, 134, 11, 0, //DarkGoldenrod
+                169, 169, 169, 0, //DarkGray
+                0, 100, 0, 0, //DarkGreen
+                189, 183, 107, 0, //DarkKhaki
+                139, 0, 139, 0, //DarkMagenta
+                85, 107, 47, 0, //DarkOliveGreen
+                255, 140, 0, 0, //DarkOrange
+                153, 50, 204, 0, //DarkOrchid
+                139, 0, 0, 0, //DarkRed
+                233, 150, 122, 0, //DarkSalmon
+                143, 188, 143, 0, //DarkSeaGreen
+                72, 61, 139, 0, //DarkSlateBlue
+                47, 79, 79, 0, //DarkSlateGray
+                0, 206, 209, 0, //DarkTurquoise
+                148, 0, 211, 0, //DarkViolet
+                255, 20, 147, 0, //DeepPink
+                0, 191, 255, 0, //DeepSkyBlue
+                105, 105, 105, 0, //DimGray
+                30, 144, 255, 0, //DodgerBlue
+                178, 34, 34, 0, //Firebrick
+                255, 250, 240, 0, //FloralWhite
+                34, 139, 34, 0, //ForestGreen
+                255, 0, 255, 0, //Fuchsia
+                220, 220, 220, 0, //Gainsboro
+                248, 248, 255, 0, //GhostWhite
+                255, 215, 0, 0, //Gold
+                218, 165, 32, 0, //Goldenrod
+                128, 128, 128, 0, //Gray
+                0, 255, 0, 0, //Green
+                173, 255, 47, 0, //Green
+                240, 255, 240, 0, //HoneyDew
+                255, 105, 180, 0, //HotPink
+                255, 92, 92, 0, //IndianRed
+                75, 0, 130, 0, //Indigo
+                255, 255, 240, 0, //Ivory
+                240, 230, 140, 0, //Khaki
+                230, 230, 250, 0, //Lavender
+                255, 240, 245, 0, //LavenderBlush
+                124, 252, 0, 0, //LawnGreen
+                255, 250, 205, 0, //LemonChiffon
+                173, 216, 230, 0, //LightBlue
+                240, 128, 128, 0, //LightCoral
+                224, 255, 255, 0, //LightCyan
+                250, 250, 210, 0, //LightGoldenrodYellow
+                211, 211, 211, 0, //LightGray
+                144, 238, 144, 0, //LightGreen
+                255, 182, 193, 0, //LightPink
+                255, 160, 122, 0, //LightSalmon
+                32, 178, 170, 0, //LightSeaGreen
+                135, 206, 250, 0, //LightSkyBlue
+                119, 136, 153, 0, //LightSlateGray
+                176, 196, 222, 0, //LightSteelBlue
+                255, 255, 224, 0, //LightYellow
+                0, 255, 0, 0, //Lime
+                50, 205, 50, 0, //LimeGreen
+                250, 240, 230, 0, //Linen
+                255, 0, 255, 0, //Magenta
+                128, 0, 0, 0, //Maroon
+                102, 205, 170, 0, //MediumAquamarine
+                0, 0, 205, 0, //MediumBlue
+                186, 85, 211, 0, //MediumOrchid
+                147, 112, 219, 0, //MediumPurple
+                123, 104, 238, 0, //MediumSlateBlue
+                0, 250, 154, 0, //MediumSpringGreen
+                72, 209, 204, 0, //MediumTurquoise
+                199, 21, 133, 0, //MediumVioletRed
+                25, 25, 112, 0, //MidnightBlue
+                245, 255, 250, 0, //MintCream
+                255, 228, 225, 0, //MistyRose
+                255, 228, 181, 0, //Moccasin
+                255, 222, 173, 0, //NavajoWhite
+                0, 0, 128, 0, //Navy
+                253, 245, 230, 0, //OldLace
+                128, 128, 0, 0, //Olive
+                107, 142, 35, 0, //OliveDrab
+                255, 165, 0, 0, //Orange
+                255, 69, 0, 0, //OrangeRed
+                218, 112, 214, 0, //Orchid
+                238, 232, 170, 0, //PaleGoldenrod
+                152, 251, 152, 0, //PaleGreen
+                175, 238, 238, 0, //PaleTurquoise
+                219, 112, 147, 0, //PaleVioletRed
+                255, 239, 213, 0, //PapayaWhip
+                255, 218, 185, 0, //PeachPuff
+                205, 133, 63, 0, //Peru
+                255, 192, 203, 0, //Pink
+                221, 160, 221, 0, //Plum
+                176, 224, 230, 0, //PowderBlue
+                128, 0, 128, 0, //Purple
+                255, 0, 0, 0, //Red
+                188, 143, 143, 0, //RosyBrown
+                65, 105, 225, 0, //RoyalBlue
+                139, 69, 19, 0, //SaddleBrown
+                250, 128, 114, 0, //Salmon
+                244, 164, 96, 0, //SandyBrown
+                46, 139, 87, 0, //SeaGreen
+                255, 245, 238, 0, //SeaShell
+                160, 82, 45, 0, //Sienna
+                192, 192, 192, 0, //Silver
+                135, 206, 235, 0, //SkyBlue
+                106, 90, 205, 0, //SlateBlue
+                112, 128, 144, 0, //SlateGray
+                255, 250, 250, 0, //Snow
+                0, 255, 127, 0, //SpringGreen
+                70, 130, 180, 0, //SteelBlue
+                210, 180, 140, 0, //Tan
+                0, 128, 128, 0, //Teal
+                216, 191, 216, 0, //Thistle
+                255, 99, 71, 0, //Tomato
+                64, 224, 208, 0, //Turquoise
+                238, 130, 238, 0, //Violet
+                245, 222, 179, 0, //Wheat
+                255, 255, 255, 0, //White
+                245, 245, 245, 0, //WhiteSmoke
+                255, 255, 0, 0, //Yellow
+                154, 205, 50, 0, //YellowGreen
+                0, 0, 0, 0 //InvalidValue
+        };
 
 const tt_rgba* C_ALICE_BLUE = (tt_rgba*) &Colors[0];
 const tt_rgba* C_ANTIQUE_WHITE = (tt_rgba*) &Colors[4];
@@ -553,7 +607,7 @@ double FractionOf(double N)
 //(PRIVATE)
 //it copies segment (from _source to _destination) (beginning at _sourceBegin) and (with length specified by _length)
 void copy_short(const short* _source, short* _destination, int _destinationLength, int _sourceBegin,
-int _destinationBegin, int _copyLength)
+                int _destinationBegin, int _copyLength)
 {
     for (int n = 0; ; n++)
     {
@@ -573,7 +627,7 @@ int _destinationBegin, int _copyLength)
 //(PRIVATE)
 //it copies segment (from _source to _destination) (beginning at _sourceBegin) and (with length specified by _length)
 void copy_uchar(const unsigned char* _source, unsigned char* _destination, int _destinationLength, int _sourceBegin,
-          int _destinationBegin, int _copyLength)
+                int _destinationBegin, int _copyLength)
 {
     for (int n = 0; ; n++)
     {
@@ -711,14 +765,14 @@ double OrientationOf(double originX, double originY, double pointX, double point
     {
         return 270.0;
     }
-    //if _point is in first quadrant in the local coordinate system with origin the point _origin
+        //if _point is in first quadrant in the local coordinate system with origin the point _origin
     else if (originX < pointX && originY < pointY)
     {
         double opposite = pointY - originY;
         double adjacent = pointX - originX;
         return 90.0 - RadiansToDegrees(atan(opposite / adjacent));
     }
-    //if _point is in second quadrant
+        //if _point is in second quadrant
     else if (originX < pointX && originY > pointY)
     {
         double opposite = originY - pointY;
@@ -1168,7 +1222,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
 //(LOCAL-TO DrawCharacter)
 //determines the coverage of a segmentoid (singular crossing)
 unsigned int SegmentoidCoverage(const Bitex* _segmentoidVertex, const Bitex* _enteringSamplex, const Bitex* _exitingSamplex,
-const Bitex* _nextEnteringSamplex, bool _isFilledContour)
+                                const Bitex* _nextEnteringSamplex, bool _isFilledContour)
 {
     //(DEBUG)
     //(SHOULD-NOT-HAPPEN)
@@ -1879,6 +1933,30 @@ tt_Rectangle GetEnclosingRectangle(const Contour* _contour)
     return rectangle;
 }
 
+//(PRIVATE)
+//(LOCAL-TO DrawCharacter)
+unsigned char GetColorComponent(unsigned char _backgroundColorComponent, unsigned char _foregroundColorComponent, int _transparency)
+{
+    if (_backgroundColorComponent == _foregroundColorComponent)
+    {
+        return _backgroundColorComponent;
+    }
+
+    int larger = _backgroundColorComponent > _foregroundColorComponent ? _backgroundColorComponent : _foregroundColorComponent;
+    int smaller = _backgroundColorComponent < _foregroundColorComponent ? _backgroundColorComponent : _foregroundColorComponent;
+
+    unsigned char difference = larger - smaller;
+
+    if (_foregroundColorComponent > _backgroundColorComponent)
+    {
+        return _foregroundColorComponent - ((difference / 100.0) * _transparency);
+    }
+    else
+    {
+        return _foregroundColorComponent + ((difference / 100.0) * _transparency);
+    }
+}
+
 //(PUBLIC)
 /* _characterIndex is a Unicode codepoint if it's a positive value, and glyph index (within the given font file) if it's a negative value;
   the function is non-validating - if _characterIndex is a Unicode codepoint, then it must be a valid Unicode codepoint and if
@@ -1888,34 +1966,36 @@ tt_Rectangle GetEnclosingRectangle(const Contour* _contour)
 //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
 //_colorComponentOrder specifies if the pixels in _canvas are RGBA or BGRA
 //_canvasWidth and _canvasHeight are the width and height of the canvas(i.e. _canvas) specified in pixels
-//_horizonalPosition specifies the position (in pixels) of the left border of the EM-square; it can be negative or positive value
+//_horizontalPosition specifies the position (in pixels) of the left border of the EM-square; it can be negative or positive value
 //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
 //_fontSize is the height of the line (not the actual character) in pixels
+//_numberOfColors should be equal (or larger) to the number of elements in _colors
+//_transparency = 0 means fully opaque string, and 100 means fully transparent string 
 /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
    character after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
    this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
-//(REQUIREMENT) the font must contain
 /* (!!!) this is a non-validating function; the font must contain the glyph that is represented by the specified _characterIndex
          value (if set) and the parameters must have correct values */
 void DrawCharacter(
-    int _characterIndex,
-    void* _glyph,
-    const Font* _font,
-    unsigned char* _canvas,
-    enum ColorComponentOrder _colorComponentOrder,
-    int _canvasWidth,
-    int _canvasHeight,
-    double _horizontalPosition,
-    double _verticalPosition,
-    double _fontSize,
-    unsigned char _characterR,
-    unsigned char _characterG,
-    unsigned char _characterB,
-    int _maxGraphemicX,
-    double _composite_X_Offset, //(INTERNAL)
-    double _composite_Y_Offset, //(INTERNAL)
-    double _composite_X_Scale, //(INTERNAL)
-    double _composite_Y_Scale) //(INTERNAL)
+        int _characterIndex,
+        void* _glyph,
+        const Font* _font,
+        unsigned char* _canvas,
+        ColorComponentOrder _colorComponentOrder,
+        int _canvasWidth,
+        int _canvasHeight,
+        double _horizontalPosition,
+        double _verticalPosition,
+        double _fontSize,
+        GlyphColorizationMode _colorizationMode,
+        const tt_rgba* _colors,
+        int _numberOfColors,
+        int _transparency,
+        int _maxGraphemicX,
+        double _composite_X_Offset, //(INTERNAL)
+        double _composite_Y_Offset, //(INTERNAL)
+        double _composite_X_Scale, //(INTERNAL)
+        double _composite_Y_Scale) //(INTERNAL)
 {
     double SCALE = GetScale(_font, _fontSize);
 
@@ -1926,12 +2006,12 @@ void DrawCharacter(
     {
         glyph = _glyph;
     }
-    //ако &_characterIndex is an Unicode codepoint
+        //ако &_characterIndex is an Unicode codepoint
     else if (_characterIndex > 0)
     {
         glyph = GetGlyph(_font, _characterIndex);
     }
-    //(STATE) _characterIndex is a glyph index (in the table 'glyf')
+        //(STATE) _characterIndex is a glyph index (in the table 'glyf')
     else
     {
         GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
@@ -1943,7 +2023,7 @@ void DrawCharacter(
     {
         return;
     }
-    ///IF THE GLYPH IS SIMPLE
+        ///IF THE GLYPH IS SIMPLE
     else if (Is(glyph, SIMPLE_GLYPH))
     {
         SimpleGlyph* glyph_ = (SimpleGlyph*) glyph;
@@ -2063,14 +2143,14 @@ void DrawCharacter(
         else
         {
             //the first element of the pair is a contour, and the second element is his 'most-direct' container contour
-            pair* contourPairs = malloc(sizeof(pair) * numberOfContours);
+            ContourPair* contourPairs = malloc(sizeof(ContourPair) * numberOfContours);
 
             for (int i = 0; i < numberOfContours; i++)
             {
-                contourPairs[i].Key = NULL;
-                contourPairs[i].Value = NULL;
+                contourPairs[i].Contour = NULL;
+                contourPairs[i].DirectContainer = NULL;
             }
-           
+
             //determine the closest enclosing rectangles for every contour
             for (int i = 0; i < numberOfContours; i++)
             {
@@ -2078,8 +2158,8 @@ void DrawCharacter(
 
                 Contour* contour = &unorderedContours[i];
                 tt_Rectangle rectangle = GetEnclosingRectangle(contour);
-                int mostDirectArea = -1;
-                Contour* mostDirectContainer = NULL;
+                int directArea = -1;
+                Contour* directContainer = NULL;
 
                 for (int n = 0; n < numberOfContours; n++)
                 {
@@ -2091,38 +2171,38 @@ void DrawCharacter(
 
                         if (RectangleContainsRectangle(&rectangle_, &rectangle))
                         {
-                            if (mostDirectContainer == NULL)
+                            if (directContainer == NULL)
                             {
-                                mostDirectContainer = contour_;
-                                mostDirectArea = rectangle_.Width * rectangle_.Height;
+                                directContainer = contour_;
+                                directArea = rectangle_.Width * rectangle_.Height;
                             }
                             else
                             {
                                 int area_ = rectangle_.Width * rectangle_.Height;
 
-                                if (area_ < mostDirectArea)
+                                if (area_ < directArea)
                                 {
-                                    mostDirectArea = area_;
-                                    mostDirectContainer = contour_;
+                                    directArea = area_;
+                                    directContainer = contour_;
                                 }
                             }
                         }
                     }
                 }
 
-                contourPairs[i].Key = contour;
-                contourPairs[i].Value = mostDirectContainer;
+                contourPairs[i].Contour = contour;
+                contourPairs[i].DirectContainer = directContainer;
             }
 
             //adding the (contours with no containers) to &orderedContours
 
             for (int i = 0; i < numberOfContours; i++)
             {
-                pair* contourPair = &contourPairs[i];
+                ContourPair* contourPair = &contourPairs[i];
 
-                if (contourPair->Value == NULL)
+                if (contourPair->DirectContainer == NULL)
                 {
-                    orderedContours[orderedContoursCount++] = *((Contour*) contourPair->Key);
+                    orderedContours[orderedContoursCount++] = *((Contour*) contourPair->Contour);
                 }
             }
 
@@ -2130,15 +2210,15 @@ void DrawCharacter(
 
             for (int i = 0; i < numberOfContours; i++)
             {
-                pair* pair = &contourPairs[i];
+                ContourPair* pair = &contourPairs[i];
 
-                if (pair->Value != NULL)
+                if (pair->DirectContainer != NULL)
                 {
                     int containerIndex = -1;
 
                     for (int n = 0; n < orderedContoursCount; n++)
                     {
-                        if (orderedContours[n].OriginalIndex == ((Contour*) pair->Value)->OriginalIndex)
+                        if (orderedContours[n].OriginalIndex == ((Contour*) pair->DirectContainer)->OriginalIndex)
                         {
                             containerIndex = n;
                         }
@@ -2146,7 +2226,7 @@ void DrawCharacter(
 
                     for (int i = 0; i < orderedContoursCount; i++)
                     {
-                        if (orderedContours->OriginalIndex == ((Contour*) pair->Value)->OriginalIndex)
+                        if (orderedContours->OriginalIndex == ((Contour*) pair->DirectContainer)->OriginalIndex)
                         {
                             containerIndex = i;
                             break;
@@ -2155,11 +2235,11 @@ void DrawCharacter(
 
                     if (containerIndex != -1 && containerIndex < orderedContoursCount - 1)
                     {
-                        insert(orderedContours, numberOfContours, pair->Key, containerIndex + 1);
+                        insert(orderedContours, numberOfContours, pair->Contour, containerIndex + 1);
                     }
                     else
                     {
-                        orderedContours[orderedContoursCount] = *((Contour*) pair->Key);
+                        orderedContours[orderedContoursCount] = *((Contour*) pair->Contour);
                     }
 
                     orderedContoursCount++;
@@ -2575,7 +2655,7 @@ void DrawCharacter(
                                     nextSamplex.Y = deltaY;
 
                                     unsigned int coverage = SegmentoidCoverage(&segmentoidVertex, &enteringSamplex,
-                                                   &exitingSamplex, &nextSamplex, contour->IsFilled);
+                                                                               &exitingSamplex, &nextSamplex, contour->IsFilled);
 
                                     int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
@@ -2645,7 +2725,7 @@ void DrawCharacter(
                         }
                     }
                 }
-                ///IF THE POINT IS A CONTROL POINT OF A BEZIER CURVE/SPLINE
+                    ///IF THE POINT IS A CONTROL POINT OF A BEZIER CURVE/SPLINE
                 else if (!currentPointIsON)
                 {
                     //(STATE) the begin point of the curve is (the previous point in the list) or (implicit point generated before that)
@@ -2871,7 +2951,7 @@ void DrawCharacter(
                                     nextSamplex.Y = deltaY;
 
                                     unsigned int coverage = SegmentoidCoverage(&segmentoidVertex, &enteringSamplex, &exitingSamplex,
-                                       &nextSamplex, contour->IsFilled);
+                                                                               &nextSamplex, contour->IsFilled);
 
                                     int position = currentPixelMinY * MetaCanvasWidth + currentPixelMinX;
 
@@ -2962,7 +3042,7 @@ void DrawCharacter(
             if (beginPixelEnteringSamplex.X > -1)
             {
                 unsigned int coverage = SegmentoidCoverage(&endSegmentoid, &beginPixelEnteringSamplex, &beginPixelExitingSamplex,
-                                                   &beginPixelNextSamplex, contour->IsFilled);
+                                                           &beginPixelNextSamplex, contour->IsFilled);
 
                 int position = beginContourPixelY * MetaCanvasWidth + beginContourPixelX;
 
@@ -3064,8 +3144,9 @@ void DrawCharacter(
 
                     MetaCanvas_S1[row * MetaCanvasWidth + column] = 0;
                     unsigned char previousPixelType = GetBits(MetaCanvas_S2[row * MetaCanvasWidth + column], 0, 7);
+                    unsigned char previousCoverage = GetBits(MetaCanvas_S2[row * MetaCanvasWidth + column], 8, 15);
 
-                    if (pixelType == CONTUROID)
+                    if (pixelType == CONTUROID && coverage > previousCoverage)
                     {
                         SetBits_USHORT(&MetaCanvas_S2[row * MetaCanvasWidth + column], 8, 15, coverage);
                     }
@@ -3074,8 +3155,12 @@ void DrawCharacter(
                     {
                         SetBits_USHORT(&MetaCanvas_S2[row * MetaCanvasWidth + column], 0, 7, pixelType);
                     }
+                        else if (previousPixelType == CONTUROID && pixelType == INTEROID)
+                        {
+                            SetBits_USHORT(&MetaCanvas_S2[row * MetaCanvasWidth + column], 0, 7, INTEROID);
+                        }
 
-                    if (!contour->IsFilled && previousPixelType != EXTEROID && previousPixelType != CONTUROID)
+                    if (previousPixelType != EXTEROID && previousPixelType != CONTUROID && !contour->IsFilled)
                     {
                         if (pixelType == EXTEROID)
                         {
@@ -3118,22 +3203,102 @@ void DrawCharacter(
 
                 int targetPixelPosition = (targetRow * _canvasWidth + targetColumn) * PIXEL_SIZE;
 
-                tt_rgba color;
-
                 unsigned char betaCoverage = 100.0 - coverage;
+
+                tt_rgba color;
+                tt_rgba foregroundColor;
+
+                if (_colorizationMode == GCM_SOLID)
+                {
+                    foregroundColor = _colors[0];
+                }
+                else if (_colorizationMode == GCM_HORIZONTAL_GRADIENT)
+                {
+                    int maxGraphemicX = MetaCanvasWidth - 1;
+                    int colorSegmentSize = maxGraphemicX / (_numberOfColors - 1);
+                    int currentColorIndex = RoundDown(column / colorSegmentSize);
+                    int currentSegmentPixel = column - (currentColorIndex * colorSegmentSize);
+
+                    const tt_rgba* alphaColor = &_colors[currentColorIndex];
+                    const tt_rgba* betaColor = &_colors[currentColorIndex + 1];
+
+                    double r_step = (double)(betaColor->R - alphaColor->R) / colorSegmentSize;
+                    double g_step = (double)(betaColor->G - alphaColor->G) / colorSegmentSize;
+                    double b_step = (double)(betaColor->B - alphaColor->B) / colorSegmentSize;
+
+                    foregroundColor.R = alphaColor->R + (r_step * currentSegmentPixel);
+                    foregroundColor.G = alphaColor->G + (g_step * currentSegmentPixel);
+                    foregroundColor.B = alphaColor->B + (b_step * currentSegmentPixel);
+                }
+                else if (_colorizationMode == GCM_VERTICAL_GRADIENT)
+                {
+                    int maxGraphemicY = MetaCanvasHeight - 1;
+                    int colorSegmentSize = maxGraphemicY / (_numberOfColors - 1);
+                    int currentColorIndex = RoundDown(row / colorSegmentSize);
+                    int currentSegmentPixel = row - (currentColorIndex * colorSegmentSize);
+
+                    const tt_rgba* alphaColor = &_colors[currentColorIndex];
+                    const tt_rgba* betaColor = &_colors[currentColorIndex + 1];
+
+                    double r_step = (double)(betaColor->R - alphaColor->R) / colorSegmentSize;
+                    double g_step = (double)(betaColor->G - alphaColor->G) / colorSegmentSize;
+                    double b_step = (double)(betaColor->B - alphaColor->B) / colorSegmentSize;
+
+                    foregroundColor.R = alphaColor->R + (r_step * currentSegmentPixel);
+                    foregroundColor.G = alphaColor->G + (g_step * currentSegmentPixel);
+                    foregroundColor.B = alphaColor->B + (b_step * currentSegmentPixel);
+                }
+                else if (_colorizationMode == GCM_S_HORIZONTAL_GRADIENT)
+                {
+                    int stringColumn = (_horizontalPosition + column) - StringBeginX;
+                    int maxGraphemicX = StringWidth - 1;
+                    int colorSegmentSize = StringWidth / (_numberOfColors - 1);
+                    int currentColorIndex = RoundDown(stringColumn / colorSegmentSize);
+                    int currentSegmentPixel = stringColumn - (currentColorIndex * colorSegmentSize);
+
+                    const tt_rgba* alphaColor = &_colors[currentColorIndex];
+                    const tt_rgba* betaColor = &_colors[currentColorIndex + 1];
+
+                    double r_step = (double)(betaColor->R - alphaColor->R) / colorSegmentSize;
+                    double g_step = (double)(betaColor->G - alphaColor->G) / colorSegmentSize;
+                    double b_step = (double)(betaColor->B - alphaColor->B) / colorSegmentSize;
+
+                    foregroundColor.R = alphaColor->R + (r_step * currentSegmentPixel);
+                    foregroundColor.G = alphaColor->G + (g_step * currentSegmentPixel);
+                    foregroundColor.B = alphaColor->B + (b_step * currentSegmentPixel);
+                }
+                else if (_colorizationMode == GCM_S_VERTICAL_GRADIENT)
+                {
+                    int stringRow = (_verticalPosition + row) - StringBeginY;
+                    int maxGraphemicY = StringBeginY + StringHeight;
+                    int colorSegmentSize = StringHeight / (_numberOfColors - 1);
+                    int currentColorIndex = RoundDown(stringRow / colorSegmentSize);
+                    int currentSegmentPixel = stringRow - (currentColorIndex * colorSegmentSize);
+
+                    const tt_rgba* alphaColor = &_colors[currentColorIndex];
+                    const tt_rgba* betaColor = &_colors[currentColorIndex + 1];
+
+                    double r_step = (double)(betaColor->R - alphaColor->R) / colorSegmentSize;
+                    double g_step = (double)(betaColor->G - alphaColor->G) / colorSegmentSize;
+                    double b_step = (double)(betaColor->B - alphaColor->B) / colorSegmentSize;
+
+                    foregroundColor.R = alphaColor->R + (r_step * currentSegmentPixel);
+                    foregroundColor.G = alphaColor->G + (g_step * currentSegmentPixel);
+                    foregroundColor.B = alphaColor->B + (b_step * currentSegmentPixel);
+                }
 
                 if (pixelType == CONTUROID)
                 {
                     //rounding to the nearest value of the (values of the color components) is not needed, as the effect will be neglible
-                    color.R = ((_characterR / 100.0) * coverage) + ((backgroundColor.R / 100.0) * betaCoverage);
-                    color.G = ((_characterG / 100.0) * coverage) + ((backgroundColor.G / 100.0) * betaCoverage);
-                    color.B = ((_characterB / 100.0) * coverage) + ((backgroundColor.B / 100.0) * betaCoverage);
+                    color.R = ((foregroundColor.R / 100.0) * coverage) + ((backgroundColor.R / 100.0) * betaCoverage);
+                    color.G = ((foregroundColor.G / 100.0) * coverage) + ((backgroundColor.G / 100.0) * betaCoverage);
+                    color.B = ((foregroundColor.B / 100.0) * coverage) + ((backgroundColor.B / 100.0) * betaCoverage);
                 }
                 else if (pixelType == INTEROID)
                 {
-                    color.R = _characterR;
-                    color.G = _characterG;
-                    color.B = _characterB;
+                    color.R = foregroundColor.R;
+                    color.G = foregroundColor.G;
+                    color.B = foregroundColor.B;
                 }
                 else
                 {
@@ -3142,17 +3307,35 @@ void DrawCharacter(
                     color.B = backgroundColor.B;
                 }
 
-                if (_colorComponentOrder == RGBA_ORDER)
+                if (_transparency == 0)
                 {
-                    _canvas[targetPixelPosition] = color.R;
-                    _canvas[targetPixelPosition + 1] = color.G;
-                    _canvas[targetPixelPosition + 2] = color.B;
+                    if (_colorComponentOrder == RGBA_ORDER)
+                    {
+                        _canvas[targetPixelPosition] = color.R;
+                        _canvas[targetPixelPosition + 1] = color.G;
+                        _canvas[targetPixelPosition + 2] = color.B;
+                    }
+                    else
+                    {
+                        _canvas[targetPixelPosition] = color.B;
+                        _canvas[targetPixelPosition + 1] = color.G;
+                        _canvas[targetPixelPosition + 2] = color.R;
+                    }
                 }
                 else
                 {
-                    _canvas[targetPixelPosition] = color.B;
-                    _canvas[targetPixelPosition + 1] = color.G;
-                    _canvas[targetPixelPosition + 2] = color.R;
+                    if (_colorComponentOrder == RGBA_ORDER)
+                    {
+                        _canvas[targetPixelPosition] = GetColorComponent(backgroundColor.R, color.R, _transparency);
+                        _canvas[targetPixelPosition + 1] = GetColorComponent(backgroundColor.G, color.G, _transparency);
+                        _canvas[targetPixelPosition + 2] = GetColorComponent(backgroundColor.B, color.B, _transparency);
+                    }
+                    else
+                    {
+                        _canvas[targetPixelPosition] = GetColorComponent(backgroundColor.B, color.B, _transparency);
+                        _canvas[targetPixelPosition + 1] = GetColorComponent(backgroundColor.G, color.G, _transparency);
+                        _canvas[targetPixelPosition + 2] = GetColorComponent(backgroundColor.R, color.R, _transparency);
+                    }
                 }
             }
         }
@@ -3229,9 +3412,10 @@ void DrawCharacter(
                     _horizontalPosition + (x_scale != -1.0 ? component->Argument1 * SCALE : 0),
                     _verticalPosition + (y_scale != -1.0 ? component->Argument2 * SCALE : 0),
                     _fontSize,
-                    _characterR,
-                    _characterG,
-                    _characterB,
+                    _colorizationMode,
+                    _colors,
+                    _numberOfColors,
+                    _transparency,
                     -1,
                     component->Argument1,
                     component->Argument2,
@@ -3239,6 +3423,11 @@ void DrawCharacter(
                     y_scale);
         }
     }
+
+    int targetPixelPosition = (30 * _canvasWidth + 64) * PIXEL_SIZE;
+    _canvas[targetPixelPosition] = 0;
+    _canvas[targetPixelPosition + 1] = 0;
+    _canvas[targetPixelPosition + 2] = 255;
 
     if (MetaCanvas_S1 != NULL)
     {
@@ -3426,6 +3615,16 @@ double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fon
     return (maxY - minY) * GetScale(_font, _fontSize);
 }
 
+//(PRIVATE)
+//(LOCAL-TO DrawString)
+bool IsWhitespace(int _character)
+{
+    //(SOURCE) https://en.wikipedia.org/wiki/Whitespace_character
+    return _character == 9 || _character == 10 || _character == 11 || _character == 12 || _character == 13 || _character == 32 ||
+           _character == 133 || _character == 160 || _character == 5760 || (_character >= 8192 && _character <= 8202) ||
+           _character == 8232 || _character == 8233 || _character == 8239 || _character == 8287 || _character == 12288;
+}
+
 //(PUBLIC)
 //_canvas is (a RGBA or BGRA pixel array) in which the character is drawn
 //Y_Direction specifies the direction in which the Y-coordinates grow (top-to-bottom or bottom-up)
@@ -3434,25 +3633,28 @@ double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fon
 //_horizonalPosition specifies the position (in pixels) of the leftmost graphemic point of the string
 //_verticalPosition specifies the position (in pixels) of the baseline
 //_fontSize is the height of the line in pixels
+//_numberOfColors should be equal (or larger) to the number of elements in _colors
+//_transparency = 0 means fully opaque string, and 100 means fully transparent string
 /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
    string after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
    this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
 /* (!!!) this is a non-validating function; the font must contain all the (glyphs corresponding to the characters in the specified string)
          and the parameters must have correct values */
 void DrawString(
-    const wchar_t* _string,
-    const Font* _font,
-    unsigned char* _canvas,
-    enum ColorComponentOrder _colorComponentOrder,
-    int _canvasWidth,
-    int _canvasHeight,
-    double _horizontalPosition,
-    double _verticalPosition,
-    double _fontSize,
-    unsigned char _textR,
-    unsigned char _textG,
-    unsigned char _textB,
-    int _maxGraphemicX)
+        const wchar_t* _string,
+        const Font* _font,
+        unsigned char* _canvas,
+        ColorComponentOrder _colorComponentOrder,
+        int _canvasWidth,
+        int _canvasHeight,
+        double _horizontalPosition,
+        double _verticalPosition,
+        double _fontSize,
+        StringColorizationMode _colorizationMode,
+        const tt_rgba* _colors,
+        int _numberOfColors,
+        int _transparency,
+        int _maxGraphemicX)
 {
     double SCALE = GetScale(_font, _fontSize);
     HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE);
@@ -3460,27 +3662,101 @@ void DrawString(
     int lsb = GetLeftSideBearing(_font, _string[0]);
     _horizontalPosition -= lsb * SCALE;
 
+    StringBeginX = _horizontalPosition;
+    StringBeginY = _verticalPosition + GetDescent(_font, _string, stringLength) * SCALE;
+    StringWidth = GetGraphemicWidth(_font, _string, _fontSize);
+    StringHeight = GetGraphemicHeight(_font, _string, _fontSize);
+
+    int groupElementIndex = 0;
     for (int i = 0; i < stringLength; i++)
     {
+        const tt_rgba* colors;
+
+        enum GlyphColorizationMode glyphColorizationMode;
+
+        if (_colorizationMode == SCM_SOLID_IDENTICAL)
+        {
+            colors = &_colors[0];
+            glyphColorizationMode = GCM_SOLID;
+        }
+        else if (_colorizationMode == SCM_SOLID_INDIVIDUAL)
+        {
+            //move to the next color if the glyph is not empty
+            if (!IsWhitespace(_string[i]))
+            {
+                if (groupElementIndex + 1 < _numberOfColors)
+                {
+                    groupElementIndex++;
+                }
+                else
+                {
+                    groupElementIndex = 0;
+                }
+            }
+
+            colors = &_colors[groupElementIndex];
+
+            glyphColorizationMode = GCM_SOLID;
+        }
+        else if (_colorizationMode == SCM_SOLID_WORD)
+        {
+             if (IsWhitespace(_string[i]))
+             {
+                 if (groupElementIndex + 1 < _numberOfColors)
+                 {
+                     groupElementIndex++;
+                 }
+                 else
+                 {
+                     groupElementIndex = 0;
+                 }
+             }
+
+             colors = &_colors[groupElementIndex];
+
+            glyphColorizationMode = GCM_SOLID;
+        }
+        else if (_colorizationMode == SCM_HORIZONTAL_GRADIENT_GLYPH)
+        {
+            colors = _colors;
+            glyphColorizationMode = GCM_HORIZONTAL_GRADIENT;
+        }
+        else if (_colorizationMode == SCM_VERTICAL_GRADIENT_GLYPH)
+        {
+            colors = _colors;
+            glyphColorizationMode = GCM_VERTICAL_GRADIENT;
+        }
+        else if (_colorizationMode == SCM_HORIZONTAL_GRADIENT_STRING)
+        {
+            colors = _colors;
+            glyphColorizationMode = GCM_S_HORIZONTAL_GRADIENT;
+        }
+        else if (_colorizationMode == SCM_VERTICAL_GRADIENT_STRING)
+        {
+            colors = _colors;
+            glyphColorizationMode = GCM_S_VERTICAL_GRADIENT;
+        }
+
         DrawCharacter(
-                _string[i],
-                NULL,
-                _font,
-                _canvas,
-                _colorComponentOrder,
-                _canvasWidth,
-                _canvasHeight,
-                _horizontalPosition,
-                _verticalPosition,
-                _fontSize,
-                _textR,
-                _textG,
-                _textB,
-                _maxGraphemicX,
-                0.0,
-                0.0,
-                0.0,
-                0.0);
+            _string[i],
+            NULL,
+            _font,
+            _canvas,
+            _colorComponentOrder,
+            _canvasWidth,
+            _canvasHeight,
+            _horizontalPosition,
+            _verticalPosition,
+            _fontSize,
+            glyphColorizationMode,
+            colors,
+            _numberOfColors,
+            _transparency,
+            _maxGraphemicX,
+            0.0,
+            0.0,
+            0.0,
+            0.0);
 
         double scaledKerning = 0;
 
@@ -3502,12 +3778,12 @@ void DrawString(
             {
                 _horizontalPosition += advanceWidth;
             }
-            //if there is negative kerning between the two characters
+                //if there is negative kerning between the two characters
             else if (scaledKerning < 0)
             {
                 _horizontalPosition += advanceWidth - (0 - scaledKerning);
             }
-            //if there is positive kerning between the two characters
+                //if there is positive kerning between the two characters
             else
             {
                 _horizontalPosition += advanceWidth + scaledKerning;
@@ -3515,5 +3791,4 @@ void DrawString(
         }
     }
 }
-
 
