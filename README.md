@@ -17,6 +17,15 @@ GENERAL NOTES
 
   - it uses bottom-up coordinate system, i.e. Y coordinate 0 is the bottom row of the canvas
 
+  - supported colorization modes: 
+    - "solid identical" - each glyph in the string has the same color
+    - "solid individual" - each glyph in the string has an associated color; repeated in series
+    - "solid word" - each word in the string has an associated color; repeated in series
+    - "horizontal gradient (glyph)" - horizontal gradient between two or more colors; the gradient is applied to each glyph in the string, not to the string as a whole
+    - "vertical gradient (glyph)" - vertical gradient between two or more colors; the gradient is applied to each glyph in the string, not to the string as a whole
+    - "horizontal gradient (string)" - horizontal gradient between two or more colors; the gradient is applied to the string as a whole
+    - "vertical gradient (string)" - vertical gradient between two or more colors; the gradient is applied to the string as a whole
+
   - the position of the characters/strings is specified by using real numbers
 
   - the size of the characters is specified in pixels - the size specifies the line height
