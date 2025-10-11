@@ -64,11 +64,7 @@ PUBLIC API
         
         int GetRightSideBearing(const Font* _font, int _codepoint)
         
-        double GetAscent(const Font* _font, int _codepoint)
-        
         double GetAscent(const Font* _font, const wchar_t* _string)
-        
-        double GetDescent(const Font* _font, const int _codepoint)
         
         double GetDescent(const Font* _font, const wchar_t* _string)
         
@@ -79,38 +75,41 @@ PUBLIC API
         void* GetGlyph(const Font* _font, int _characterIndex)
 
         void DrawCharacter(
-            int _characterIndex,
-            void* _glyph,
-            const Font* _font,
-            unsigned char* _canvas,
-            ColorComponentOrder _colorComponentOrder,
-            int _canvasWidth,
-            int _canvasHeight,
-            double _horizontalPosition,
-            double _verticalPosition,
-            double _fontSize,
-            unsigned char _characterR,
-            unsigned char _characterG,
-            unsigned char _characterB,
-            double _composite_X_Offset, //(INTERNAL)
-            double _composite_Y_Offset, //(INTERNAL)
-            double _composite_X_Scale, //(INTERNAL)
-            double _composite_Y_Scale) //(INTERNAL)
-
-        void DrawString(
-            const wchar_t* _string,
-            const Font* _font,
-            unsigned char* _canvas,
-            ColorComponentOrder _colorComponentOrder,
-            int _canvasWidth,
-            int _canvasHeight,
-            double _horizontalPosition,
-            double _verticalPosition,
-            double _fontSize,
-            unsigned char _textR,
-            unsigned char _textG,
-            unsigned char _textB,
-            int _maxGraphemicX)
+          int _characterIndex,
+          void* _glyph,
+          const Font* _font,
+          unsigned char* _canvas,
+          enum ColorComponentOrder _colorComponentOrder,
+          int _canvasWidth,
+          int _canvasHeight,
+          double _horizontalPosition,
+          double _verticalPosition,
+          double _fontSize,
+          enum GlyphColorizationMode _colorizationMode,
+          const tt_rgba* _colors,
+          int _numberOfColors,
+          int _transparency,
+          int _maxGraphemicX,
+          double _composite_X_Offset, //(INTERNAL)
+          double _composite_Y_Offset, //(INTERNAL)
+          double _composite_X_Scale, //(INTERNAL)
+          double _composite_Y_Scale) //(INTERNAL)
+        
+       void DrawString(
+         const wchar_t* _string,
+         const Font* _font,
+         unsigned char* _canvas,
+         enum ColorComponentOrder _colorComponentOrder,
+         int _canvasWidth,
+         int _canvasHeight,
+         double _horizontalPosition,
+         double _verticalPosition,
+         double _fontSize,
+         enum StringColorizationMode _colorizationMode,
+         const tt_rgba* _colors,
+         int _numberOfColors,
+         int _transparency,
+         int _maxGraphemicX)
 
         double GetGraphemicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
    
