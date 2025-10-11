@@ -43,8 +43,7 @@ GENERAL NOTES
   - problems:
     - (MAJOR) performance-wise it's quite slow - it can draw (about ~1500 'R' characters with size ~30px) per second on а low-end machine,
           which is atleast few times slower than stb_truetype for example; performance will be addressed in the near future;
-          next version will have support for threads and pre-computed characters/strings so it should be considerably faster
-    - (MAJOR) only single-color strings; next version will have support for gradient-colored strings
+          next version will have support for threads (maybe) and pre-computed characters/strings so it should be considerably faster
     - (MAJOR) cannot properly visualize characters with self-intersecting contours (for example Unicode codepoint Dx181 in Castellar (typeface) or
       Unicode codepoint Dx198 in Viner Hand (typeface)); most likely this will be addressed in the next version
     - (MINOR) the library can potentially use a lot of memory if the visualized character is very large:
