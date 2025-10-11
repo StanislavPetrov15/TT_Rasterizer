@@ -54,12 +54,14 @@ GENERAL NOTES
 
 PUBLIC API
 
+        Font* ParseFont(FILE* _file)
+
         void* GetTable(const Font* _font, short _identifier)
         
-        Font* ParseFont(FILE* _file)
-        
         int GetGlyphIndex(const Font* _font, int _codepoint)
-        
+
+        void* GetGlyph(const Font* _font, int _characterIndex)
+           
         int GetLeftSideBearing(const Font* _font, int _characterCode)
         
         int GetRightSideBearing(const Font* _font, int _codepoint)
@@ -71,8 +73,6 @@ PUBLIC API
         int GetAdvanceWidth(const Font* _font, int _characterCode)
         
         int GetKerning(const Font* _font, int _codepoint1, int _codepoint2)
-
-        void* GetGlyph(const Font* _font, int _characterIndex)
 
         void DrawCharacter(
           int _characterIndex,
