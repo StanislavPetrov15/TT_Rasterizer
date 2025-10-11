@@ -6,8 +6,8 @@
 #include "Parser.c"
 #include "Rasterizer.c"
 
-int WindowWidth = 800;
-int WindowHeight = 500;
+int WindowWidth = 1200;
+int WindowHeight = 800;
 HWND Window;
 
 LRESULT CALLBACK EventHandler(HWND, UINT, WPARAM, LPARAM);
@@ -71,7 +71,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
         struct Font* font;
         FILE* file = NULL;
-        wchar_t* filename = ...; //(!!!) SET PATH TO THE .ttf FILE HERE
+        wchar_t* filename = L"D:\\Fonts\\arial.ttf"; //(!!!) SET PATH TO THE .ttf FILE HERE
         _wfopen_s(&file, filename, L"rb");
         font = ParseFont(file);
 
@@ -82,20 +82,128 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             TT_Canvas[i] = 255;
         }
 
+        const tt_rgba* color1 = C_CORNFLOWER_BLUE;
+        const tt_rgba* color2 = C_GOLDENROD;
+        const tt_rgba* color3 = C_PURPLE;
+        const tt_rgba* color4 = C_INDIAN_RED;
+
+        tt_rgba colors[4];
+        colors[0] = *color1;
+        colors[1] = *color2;
+        colors[2] = *color3;
+        colors[3] = *color4;
+
        DrawString(
-           L"Example string",
+           L"solid-identical mode",
            font,
-           TT_Canvas,
+           TT_Canvas, //byte array where the drawing occurs
            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
-           WindowWidth,
-           WindowHeight,
+           WindowWidth, //canvas width
+           WindowHeight, //canvas height
            30, //x (in pixels)
            30, //y (in pixels)
-           80, //size (in pixels)
-           C_CORNFLOWER_BLUE->R,
-           C_CORNFLOWER_BLUE->G,
-           C_CORNFLOWER_BLUE->B,
-           -1);
+           60, //size (in pixels)
+           SCM_SOLID_IDENTICAL, //colorization mode
+           colors,
+           4, //number of colors,
+           0, //transparency
+           -1); //max graphemic X
+
+        DrawString(
+            L"solid-individual mode",
+            font,
+            TT_Canvas, //byte array where the drawing occurs
+            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
+            WindowWidth, //canvas width
+            WindowHeight, //canvas height
+            30, //x (in pixels)
+            130, //y (in pixels)
+            60, //size (in pixels)
+            SCM_SOLID_INDIVIDUAL, //colorization mode
+            colors,
+            4, //number of colors
+            0, //transparency
+            -1); //max graphemic X
+
+        DrawString(
+            L"solid-word mode",
+            font,
+            TT_Canvas, //byte array where the drawing occurs
+            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
+            WindowWidth, //canvas width
+            WindowHeight, //canvas height
+            30, //x (in pixels)
+            230, //y (in pixels)
+            60, //size (in pixels)
+            SCM_SOLID_WORD, //colorization mode
+            colors,
+            2, //number of colors
+            0, //transparency
+            -1); //max graphemic X
+
+        DrawString(
+            L"solid-horizontal-gradient-glyph mode",
+            font,
+            TT_Canvas, //byte array where the drawing occurs
+            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
+            WindowWidth, //canvas width
+            WindowHeight, //canvas height
+            30, //x (in pixels)
+            330, //y (in pixels)
+            60, //size (in pixels)
+            SCM_HORIZONTAL_GRADIENT_GLYPH, //colorization mode
+            colors,
+            2, //number of colors
+            0, //transparency
+            -1); //max graphemic X
+
+        DrawString(
+            L"solid-vertical-gradient-glyph mode",
+            font,
+            TT_Canvas, //byte array where the drawing occurs
+            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
+            WindowWidth, //canvas width
+            WindowHeight, //canvas height
+            30, //x (in pixels)
+            430, //y (in pixels)
+            60, //size (in pixels)
+            SCM_VERTICAL_GRADIENT_GLYPH, //colorization mode
+            colors,
+            2, //number of colors
+            0, //transparency
+            -1); //max graphemic X
+
+        DrawString(
+            L"solid-horizontal-gradient-string mode",
+            font,
+            TT_Canvas, //byte array where the drawing occurs
+            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
+            WindowWidth, //canvas width
+            WindowHeight, //canvas height
+            30, //x (in pixels)
+            530, //y (in pixels)
+            60, //size (in pixels)
+            SCM_HORIZONTAL_GRADIENT_STRING, //colorization mode
+            colors,
+            4, //number of colors
+            0, //transparency
+            -1); //max graphemic X
+
+        DrawString(
+            L"solid-vertical-gradient-string mode",
+            font,
+            TT_Canvas, //byte array where the drawing occurs
+            BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
+            WindowWidth, //canvas width
+            WindowHeight, //canvas height
+            30, //x (in pixels)
+            630, //y (in pixels)
+            60, //size (in pixels)
+            SCM_VERTICAL_GRADIENT_STRING, //colorization mode
+            colors,
+            4, //number of colors
+            0, //transparency
+            -1); //max graphemic X
 
         SetDIBitsToDevice(hdc, 0, 0, WindowWidth, WindowHeight, 0, 0, 0, WindowHeight, TT_Canvas, (BITMAPINFO*)&header, DIB_RGB_COLORS);
 
