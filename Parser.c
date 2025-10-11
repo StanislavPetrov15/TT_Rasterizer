@@ -1590,7 +1590,7 @@ int GetRightSideBearing(const Font* _font, int _codepoint)
 //returns negative value if the highest graphemic point of the character is below the baseline
 //returns INT_MAX if the _codepoint is empty symbol
 //_fontSize is specified in pixels
-double GetCodepointAscent(Font* _font, int _codepoint)
+double GetCodepointAscent(const Font* _font, int _codepoint)
 {
     HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
     GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
@@ -1616,7 +1616,7 @@ double GetCodepointAscent(Font* _font, int _codepoint)
 //returns positive value if the lowest graphemic point of the string is above the baseline
 //returns INT_MAX if the _codepoint represents an empty glyph
 //_fontSize is specified in pixels
-double GetCodepointDescent(Font* _font, int _codepoint)
+double GetCodepointDescent(const Font* _font, int _codepoint)
 {
     HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
     GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
@@ -1642,7 +1642,7 @@ double GetCodepointDescent(Font* _font, int _codepoint)
 //returns negative value if the highest graphemic point of the string is below the baseline
 //_fontSize is specified in pixels
 //_stringLength is in characters
-double GetStringAscent(Font* _font, const char* _string, int _stringLength)
+double GetAscent(const Font* _font, const wchar_t* _string, int _stringLength)
 {
     HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
     GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
@@ -1685,7 +1685,7 @@ double GetStringAscent(Font* _font, const char* _string, int _stringLength)
 //returns positive value if the lowest graphemic point of the string is above the baseline
 //_fontSize is specified in pixels
 //_stringLength is in characters
-double GetStringDescent(Font* _font, const char* _string, int _stringLength)
+double GetDescent(const Font* _font, const wchar_t* _string, int _stringLength)
 {
     HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
     GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
