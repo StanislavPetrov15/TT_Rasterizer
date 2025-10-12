@@ -66,6 +66,9 @@ GENERAL NOTES
         (*) for most real-world characters it will be no more than 1MB, as they will be much smaller
       - also the library makes a copy of the currently used font in the memory; very few fonts are very big though (over 10 MB)
 
+    (!) the website fontdrop.info and a program called DTL OTMaster were very helpful throughout the development of this library
+
+
 PUBLIC API
 
         Font* ParseFont(FILE* _file)
