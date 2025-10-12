@@ -182,7 +182,7 @@ struct tt_rgba
     unsigned char R;
     unsigned char G;
     unsigned char B;
-    unsigned char A;
+    unsigned char A; //not used by the rasterizer, but it's good to provide it here as it may be used for 'outside' purposes
 };
 
 typedef struct tt_rgba tt_rgba;
@@ -2122,7 +2122,7 @@ void DrawCharacter(
             //(STATE) F_Contours_Count >= 2 && N_Contours_Count >= 2; a reordering of the contours must be performed
         else
         {
-            //the first element of the pair is a contour, and the second element is his 'most-direct' container contour
+            //the first element of the pair is a contour, and the second element is his 'direct' container contour
             ContourPair* contourPairs = malloc(sizeof(ContourPair) * numberOfContours);
 
             for (int i = 0; i < numberOfContours; i++)
@@ -2134,7 +2134,7 @@ void DrawCharacter(
             //determine the closest enclosing rectangles for every contour
             for (int i = 0; i < numberOfContours; i++)
             {
-                //determine the the most-direct container contour for &__contour
+                //determine the direct container contour for &__contour
 
                 Contour* contour = &unorderedContours[i];
                 tt_Rectangle rectangle = GetEnclosingRectangle(contour);
@@ -2465,8 +2465,8 @@ void DrawCharacter(
                 double scaledNextPointX = (nextPointX * SCALE) + fx_shift;
                 double scaledNextPointY = (nextPointY * SCALE) + fy_shift;
 
-                bool currentPointIsON = GetBit(flags_, 0) == true;
-                bool nextPointIsON = GetBit(nextFlags, 0) == true;
+                bool currentPointIsON = GetBit(flags_, 0);
+                bool nextPointIsON = GetBit(nextFlags, 0);
 
                 ///ON, ON :: LINE
                 if (currentPointIsON && nextPointIsON)
