@@ -129,7 +129,7 @@ PUBLIC API
         double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fontSize)
 
         double GetTypographicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
-<br/> <br/> <br/> <br/>
+<br/> <br/> <br/> 
 TERMINOLOGY 
 
    - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
