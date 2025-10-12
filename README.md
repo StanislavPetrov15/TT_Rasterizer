@@ -29,8 +29,6 @@ GENERAL NOTES
     - "horizontal gradient (string)" - horizontal gradient between two or more colors; the gradient is applied to the string as a whole
     - "vertical gradient (string)" - vertical gradient between two or more colors; the gradient is applied to the string as a whole
 
-  - the position of the characters/strings is specified by using real numbers
-
   - the size of the characters is specified in pixels - the size specifies the line height
 
   - for now it does not support:
@@ -47,7 +45,7 @@ GENERAL NOTES
   - the library does not validate the font files - it should be used only on trusted font files
 
   - the library is tested on Windows only, but since it does not have any dependencies it should produce the same results
-     on any other system that can produce C99
+     on any other system that can generate C99 code
 
   - a character or string is positioned at the baseline; for example if a character/string has Y set to 109, then the baseline of
     the character/string has vertical position 109 (row with index 109) in the canvas
@@ -55,9 +53,9 @@ GENERAL NOTES
   - problems:
     - (MAJOR) performance-wise it's quite slow - it can draw (about ~1500 'R' characters with size ~30px) per second on а low-end machine,
           which is atleast few times slower than stb_truetype for example; performance will be addressed in the near future;
-          next version will have support for threads (maybe) and pre-computed characters/strings so it should be considerably faster
+          next version will have support for threads (maybe) and pre-computed characters/strings so it should be considerably faster (like 5-10 times faster atleast)
     - (MAJOR) cannot properly visualize characters with self-intersecting contours (for example Unicode codepoint Dx181 in Castellar (typeface) or
-      Unicode codepoint Dx198 in Viner Hand (typeface)); most likely this will be addressed in the next version
+      Unicode codepoint Dx198 in Viner Hand (typeface); most likely this will be addressed in the next version
     - (MINOR) the library can potentially use a lot of memory if the visualized character is very large:
       - for example it uses (~4MB if the character is 1000x1000px) or (~16MB if the character is 2000x2000px)
         (*) for most real-world characters it will be no more than 1MB, as they will be much smaller
