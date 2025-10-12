@@ -1,9 +1,6 @@
 
 <img width="865" height="673" alt="example" src="https://github.com/user-attachments/assets/2d4f050c-2c3e-43c9-916c-f6d7e5ef34dc" /> 
-<br/>
-<br/>
-<br/>
-<br/>
+<br/> <br/> <br/> <br/>
 GENERAL NOTES
     
   - the library does not depend on third-party code; it depends only on few functions in the C standard library
@@ -67,9 +64,7 @@ GENERAL NOTES
       - also the library makes a copy of the currently used font in the memory; very few fonts are very big though (over 10 MB)
 
   (!) the website fontdrop.info and a program called DTL OTMaster were very helpful throughout the development of this library
-  
-  
-  
+<br/> <br/> <br/> <br/>
 PUBLIC API
 
         Font* ParseFont(FILE* _file)
@@ -134,10 +129,7 @@ PUBLIC API
         double GetGraphemicHeight(const Font* _font, const wchar_t* _string, double _fontSize)
 
         double GetTypographicWidth(const Font* _font, const wchar_t* _string, double _fontSize)
-  
-  
-  
-  
+<br/> <br/> <br/> <br/>
 TERMINOLOGY 
 
    - (segment) :: segment of a contour - a line, Bezier curve or Bezier spline
