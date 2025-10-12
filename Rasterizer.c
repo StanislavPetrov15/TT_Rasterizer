@@ -3424,11 +3424,6 @@ void DrawCharacter(
         }
     }
 
-    int targetPixelPosition = (30 * _canvasWidth + 64) * PIXEL_SIZE;
-    _canvas[targetPixelPosition] = 0;
-    _canvas[targetPixelPosition + 1] = 0;
-    _canvas[targetPixelPosition + 2] = 255;
-
     if (MetaCanvas_S1 != NULL)
     {
         free(MetaCanvas_S1);
