@@ -824,52 +824,32 @@ void Move(double* _deltaX, double* _deltaY, double _orientation, double _magnitu
     else if (_orientation < 90.0)
     {
         double hypotenuse = _magnitude;
-
-        //cos(_bivector.Orientation) = adjacent / hypotenuse ->
         double adjacent = cos(DegreesToRadians(_orientation)) * hypotenuse;
-
-        //sin(_bivector.Orientation) = opposite / hypotenuse ->
         double opposite = sin(DegreesToRadians(_orientation)) * hypotenuse;
-
         *_deltaX = x + opposite;
         *_deltaY = y + adjacent;
     }
     else if (_orientation > 90.0 && _orientation < 180.0)
     {
         double hypotenuse = _magnitude;
-
-        //cos(_bivector.Orientation - 90.0) = adjacent / hypotenuse ->
         double adjacent = cos(DegreesToRadians(_orientation - 90.0)) * hypotenuse;
-
-        //sin(_bivector.Orientation - 90.0) = opposite / hypotenuse ->
         double opposite = sin(DegreesToRadians(_orientation - 90.0)) * hypotenuse;
-
         *_deltaX = x + adjacent;
         *_deltaY = y - opposite;
     }
     else if (_orientation > 180.0 && _orientation < 270.0)
     {
         double hypotenuse = _magnitude;
-
-        //cos(_bivector.Orientation - 180.0) = adjacent / hypotenuse ->
         double adjacent = cos(DegreesToRadians(_orientation - 180.0)) * hypotenuse;
-
-        //sin(_bivector.Orientation - 180.0) = opposite / hypotenuse ->
         double opposite = sin(DegreesToRadians(_orientation - 180.0)) * hypotenuse;
-
         *_deltaX = x - opposite;
         *_deltaY = y - adjacent;
     }
     else if (_orientation > 270.0 && _orientation < 360.0)
     {
         double hypotenuse = _magnitude;
-
-        //cos(_bivector.Orientation - 270.0) = adjacent / hypotenuse ->
         double adjacent = cos(DegreesToRadians(_orientation - 270.0)) * hypotenuse;
-
-        //sin(_bivector.Orientation - 270.0) = opposite / hypotenuse ->
         double opposite = sin(DegreesToRadians(_orientation - 270.0)) * hypotenuse;
-
         *_deltaX = x - adjacent;
         *_deltaY = y + opposite;
     }
@@ -1970,7 +1950,7 @@ unsigned char GetColorComponent(unsigned char _backgroundColorComponent, unsigne
 //_verticalPosition specifies the position (in pixels) of the baseline in the canvas; it can be negative or positive value
 //_fontSize is the height of the line (not the actual character) in pixels
 //_numberOfColors should be equal (or larger) to the number of elements in _colors
-//_transparency = 0 means fully opaque string, and 100 means fully transparent string 
+//_transparency = 0 means fully opaque string, and 100 means fully transparent string
 /*_maxGraphemicX specifies a limiting X coordinate in the canvas (not an X coordinate in the string itself) - i.e. the part of the
    character after this coordinate will not be visualized; a value of -1 specifies that there is no horizontal limit;
    this coordinate is inclusive, i.e. the column matching the coordinate will also be visualized */
@@ -3155,10 +3135,10 @@ void DrawCharacter(
                     {
                         SetBits_USHORT(&MetaCanvas_S2[row * MetaCanvasWidth + column], 0, 7, pixelType);
                     }
-                        else if (previousPixelType == CONTUROID && pixelType == INTEROID)
-                        {
-                            SetBits_USHORT(&MetaCanvas_S2[row * MetaCanvasWidth + column], 0, 7, INTEROID);
-                        }
+                    else if (previousPixelType == CONTUROID && pixelType == INTEROID)
+                    {
+                        SetBits_USHORT(&MetaCanvas_S2[row * MetaCanvasWidth + column], 0, 7, INTEROID);
+                    }
 
                     if (previousPixelType != EXTEROID && previousPixelType != CONTUROID && !contour->IsFilled)
                     {
