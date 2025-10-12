@@ -1047,7 +1047,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
         double middleX = AverageOf(localEnteringX, localExitingX);
         double width = 1.0 - middleX;
         double height = 1.0;
-        coverage = width * height * 100.0f;
+        coverage = width * height * 100.0;
         crossingType = _isFilledContour ? O_CROSSING : T_CROSSING;
     }
         //(T->B crossing)
@@ -1056,7 +1056,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
         double middleX = AverageOf(localEnteringX, localExitingX);
         double width = middleX;
         double height = 1.0;
-        coverage = width * height * 100.0f;
+        coverage = width * height * 100.0;
         crossingType = _isFilledContour ? T_CROSSING : O_CROSSING;
     }
         //(L->R crossing)
@@ -1065,7 +1065,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
         double middleY = AverageOf(localEnteringY, localExitingY);
         double width = 1.0;
         double height = middleY;
-        coverage = width * height * 100.0f;
+        coverage = width * height * 100.0;
     }
         //(R->L crossing)
     else if (PreviousPixelX > currentPixelX && nextPixelX < currentPixelX && PreviousPixelY == currentPixelY && nextPixelY == currentPixelY)
@@ -1073,14 +1073,14 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
         double middleY = AverageOf(localEnteringY, localExitingY);
         double width = 1.0;
         double height = 1.0 - middleY;
-        coverage = width * height * 100.0f;
+        coverage = width * height * 100.0;
     }
         //(L->B crossing)
     else if (PreviousPixelX < currentPixelX && PreviousPixelY == currentPixelY && nextPixelY < currentPixelY)
     {
         double width = _exitingSamplex->X - _enteringSamplex->X;
         double height = _enteringSamplex->Y - _exitingSamplex->Y;
-        coverage = (width * height * 100.0f) / 2.0f;
+        coverage = (width * height * 100.0) / 2.0;
         crossingType = _isFilledContour ? T_CROSSING : O_CROSSING;
         SetBit(&coverage, _isFilledContour ? T_LEFT : O_LEFT, true);
     }
@@ -1089,7 +1089,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _exitingSamplex->X - _enteringSamplex->X;
         double height = _exitingSamplex->Y - _enteringSamplex->Y;
-        coverage = 100.0 - ((width * height * 100.0f) / 2.0f);
+        coverage = 100.0 - ((width * height * 100.0) / 2.0);
         crossingType = _isFilledContour ? O_CROSSING : T_CROSSING;
         SetBit(&coverage, _isFilledContour ? O_LEFT : T_LEFT, true);
     }
@@ -1098,7 +1098,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _enteringSamplex->X - _exitingSamplex->X;
         double height = _enteringSamplex->Y - _exitingSamplex->Y;
-        coverage = 100.0f - ((width * height * 100.0f) / 2.0f);
+        coverage = 100.0 - ((width * height * 100.0) / 2.0);
         crossingType = _isFilledContour ? T_CROSSING : O_CROSSING;
         SetBit(&coverage, _isFilledContour ? T_RIGHT : O_LEFT, true);
     }
@@ -1107,7 +1107,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _enteringSamplex->X - _exitingSamplex->X;
         double height = _exitingSamplex->Y - _enteringSamplex->Y;
-        coverage = (width * height * 100.0f) / 2.0f;
+        coverage = (width * height * 100.0) / 2.0;
         crossingType = _isFilledContour ? O_CROSSING : T_CROSSING;
         SetBit(&coverage, _isFilledContour ? O_RIGHT : T_RIGHT, true);
     }
@@ -1116,7 +1116,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _enteringSamplex->X - _exitingSamplex->X;
         double height = _exitingSamplex->Y - _enteringSamplex->Y;
-        coverage = 100.0f - ((width * height * 100.0f) / 2.0f);
+        coverage = 100.0 - ((width * height * 100.0) / 2.0);
         crossingType = _isFilledContour ? O_CROSSING : T_CROSSING;
         SetBit(&coverage, _isFilledContour ? O_LEFT : T_LEFT, true);
     }
@@ -1125,7 +1125,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _exitingSamplex->X - _enteringSamplex->X;
         double height = _exitingSamplex->Y - _enteringSamplex->Y;
-        coverage = (width * height * 100.0f) / 2.0f;
+        coverage = (width * height * 100.0) / 2.0;
         crossingType = _isFilledContour ? O_CROSSING : T_CROSSING;
         SetBit(&coverage, _isFilledContour ? O_RIGHT : T_RIGHT, true);
     }
@@ -1134,7 +1134,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _enteringSamplex->X - _exitingSamplex->X;
         double height = _enteringSamplex->Y - _exitingSamplex->Y;
-        coverage = (width * height * 100.0f) / 2.0f;
+        coverage = (width * height * 100.0) / 2.0;
         crossingType = _isFilledContour ? T_CROSSING : O_CROSSING;
         SetBit(&coverage, _isFilledContour ? T_LEFT : O_LEFT, true);
     }
@@ -1143,7 +1143,7 @@ unsigned int SegmentonomCoverage(const Bitex* _enteringSamplex, const Bitex* _ex
     {
         double width = _exitingSamplex->X - _enteringSamplex->X;
         double height = _enteringSamplex->Y - _exitingSamplex->Y;
-        coverage = 100.0f - ((width * height * 100.0f) / 2.0f);
+        coverage = 100.0 - ((width * height * 100.0) / 2.0);
         crossingType = _isFilledContour ? T_CROSSING : O_CROSSING;
         SetBit(&coverage, _isFilledContour ? T_RIGHT : O_RIGHT, true);
     }
@@ -3675,19 +3675,19 @@ void DrawString(
         }
         else if (_colorizationMode == SCM_SOLID_WORD)
         {
-             if (IsWhitespace(_string[i]))
-             {
-                 if (groupElementIndex + 1 < _numberOfColors)
-                 {
-                     groupElementIndex++;
-                 }
-                 else
-                 {
-                     groupElementIndex = 0;
-                 }
-             }
+            if (IsWhitespace(_string[i]))
+            {
+                if (groupElementIndex + 1 < _numberOfColors)
+                {
+                    groupElementIndex++;
+                }
+                else
+                {
+                    groupElementIndex = 0;
+                }
+            }
 
-             colors = &_colors[groupElementIndex];
+            colors = &_colors[groupElementIndex];
 
             glyphColorizationMode = GCM_SOLID;
         }
@@ -3713,25 +3713,25 @@ void DrawString(
         }
 
         DrawCharacter(
-            _string[i],
-            NULL,
-            _font,
-            _canvas,
-            _colorComponentOrder,
-            _canvasWidth,
-            _canvasHeight,
-            _horizontalPosition,
-            _verticalPosition,
-            _fontSize,
-            glyphColorizationMode,
-            colors,
-            _numberOfColors,
-            _transparency,
-            _maxGraphemicX,
-            0.0,
-            0.0,
-            0.0,
-            0.0);
+                _string[i],
+                NULL,
+                _font,
+                _canvas,
+                _colorComponentOrder,
+                _canvasWidth,
+                _canvasHeight,
+                _horizontalPosition,
+                _verticalPosition,
+                _fontSize,
+                glyphColorizationMode,
+                colors,
+                _numberOfColors,
+                _transparency,
+                _maxGraphemicX,
+                0.0,
+                0.0,
+                0.0,
+                0.0);
 
         double scaledKerning = 0;
 
@@ -3766,4 +3766,3 @@ void DrawString(
         }
     }
 }
-
