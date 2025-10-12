@@ -7,7 +7,7 @@ GENERAL NOTES
 
   - it's C files only, no headers for now as i don't use them in my personal projects 
 
-  - software rasterizer (it does not use hardware acceleration) 
+  - software rasterizer (it does not use hardware acceleration at all) 
 
   - it implements gray-scale anti-aliasing
 
