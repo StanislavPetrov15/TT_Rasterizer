@@ -9,8 +9,6 @@ GENERAL NOTES
 
   - software rasterizer (it does not use hardware acceleration at all) 
 
-  - it implements gray-scale anti-aliasing
-
   - the characters/string are 'drawn' in a byte array which then has to be visualized using (low-level graphic API's
     such as GDI, GDI+, Direct2D, etc) or (high-level graphic libraries such as Cairo, SDL, etc)
 
