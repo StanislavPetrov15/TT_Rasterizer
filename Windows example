@@ -209,6 +209,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
         ReleaseFont(font);
 
+        free(TT_Canvas);
         EndPaint(hwnd, &ps);
 
         return 0;
