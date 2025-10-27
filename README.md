@@ -27,7 +27,7 @@ GENERAL NOTES
 
   - supports underline functionality; to use it, set UnderlineColor, UnderlineThickness and UnderlinePosition variables; to disable it, set UnderlineColor to NULL
 
-  - the size of the characters is specified in pixels - the size specifies the line height
+  - the size of the characters is specified in pixels - the size specifies the line height (the distance from the baseline to the ascender) 
 
   - for now it does not support:
     - font collection files
