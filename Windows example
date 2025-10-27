@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
-#include "Parser.c"
-#include "Rasterizer.c"
+#include "Parser.h"
+#include "Rasterizer.h"
 
 int WindowWidth = 1200;
 int WindowHeight = 800;
@@ -70,7 +70,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         header.biClrImportant = 0;
 
         struct Font* font;
-        FILE* file = NULL;
+        FILE* file = NULL
         wchar_t* filename = L"..."; //(!!!) SET PATH TO THE .ttf FILE HERE
         _wfopen_s(&file, filename, L"rb");
         font = ParseFont(file);
@@ -102,10 +102,10 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
            WindowHeight, //canvas height
            30, //x (in pixels)
            30, //y (in pixels)
-           60, //size (in pixels)
+           80, //size (in pixels)
            SCM_SOLID_IDENTICAL, //colorization mode
            colors,
-           4, //number of colors,
+           3, //number of colors,
            0, //transparency
            -1); //max graphemic X
 
@@ -142,7 +142,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             -1); //max graphemic X
 
         DrawString(
-            L"solid-horizontal-gradient-glyph mode",
+            L"horizontal-gradient-glyph mode",
             font,
             TT_Canvas, //byte array where the drawing occurs
             BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
@@ -158,7 +158,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             -1); //max graphemic X
 
         DrawString(
-            L"solid-vertical-gradient-glyph mode",
+            L"vertical-gradient-glyph mode",
             font,
             TT_Canvas, //byte array where the drawing occurs
             BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
@@ -174,7 +174,7 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             -1); //max graphemic X
 
         DrawString(
-            L"solid-horizontal-gradient-string mode",
+            L"horizontal-gradient-string mode",
             font,
             TT_Canvas, //byte array where the drawing occurs
             BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
@@ -185,12 +185,12 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             60, //size (in pixels)
             SCM_HORIZONTAL_GRADIENT_STRING, //colorization mode
             colors,
-            4, //number of colors
+            3, //number of colors
             0, //transparency
             -1); //max graphemic X
 
         DrawString(
-            L"solid-vertical-gradient-string mode",
+            L"vertical-gradient-string mode",
             font,
             TT_Canvas, //byte array where the drawing occurs
             BGRA_ORDER, //SetDIBitsToDevice() uses BGR order
@@ -201,15 +201,22 @@ LRESULT CALLBACK EventHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             60, //size (in pixels)
             SCM_VERTICAL_GRADIENT_STRING, //colorization mode
             colors,
-            4, //number of colors
+            2, //number of colors
             0, //transparency
             -1); //max graphemic X
 
+        //underline functionality
+        //UnderlineColor = C_BLACK;
+        //UnderlineThickness = 3; //in pixels
+        //UnderlinePosition = 6; //in pixels under the baseline
+        //DrawString(...)
+        //UnderlineColor = NULL; //disable underline functionality
+
         SetDIBitsToDevice(hdc, 0, 0, WindowWidth, WindowHeight, 0, 0, 0, WindowHeight, TT_Canvas, (BITMAPINFO*)&header, DIB_RGB_COLORS);
 
+        free(TT_Canvas);
         ReleaseFont(font);
 
-        free(TT_Canvas);
         EndPaint(hwnd, &ps);
 
         return 0;
