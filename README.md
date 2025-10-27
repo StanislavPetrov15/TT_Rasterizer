@@ -25,7 +25,7 @@ GENERAL NOTES
     - horizontal gradient (string) - horizontal gradient between two or more colors; the gradient is applied to the string as a whole
     - vertical gradient (string) - vertical gradient between two or more colors; the gradient is applied to the string as a whole
 
-  - supports underline functionality; to use it, set UnderlineColor, UnderlineThickness and UnderlinePosition variables; to disable it, set UnderlineColor to NULL
+  - supports underline functionality; to use it, set the UnderlineColor, UnderlineThickness and UnderlinePosition variables; to disable it, set UnderlineColor to NULL
 
   - the size of the characters is specified in pixels - the size specifies the line height (the distance from the baseline to the ascender) 
 
