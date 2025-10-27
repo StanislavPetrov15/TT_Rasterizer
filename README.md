@@ -1,11 +1,9 @@
+<img width="859" height="679" alt="example" src="https://github.com/user-attachments/assets/1e39095a-7315-48f4-96c8-fe5041dc5836" />
 
-<img width="865" height="673" alt="example" src="https://github.com/user-attachments/assets/2d4f050c-2c3e-43c9-916c-f6d7e5ef34dc" /> 
 <br/> <br/> <br/> <br/>
 GENERAL NOTES
     
   - the library does not depend on third-party code; it depends only on few functions in the C standard library
-
-  - it's C files only, no headers for now as i don't use them in my personal projects 
 
   - software rasterizer (it does not use hardware acceleration at all) 
 
@@ -26,6 +24,8 @@ GENERAL NOTES
     - "vertical gradient (glyph)" - vertical gradient between two or more colors; the gradient is applied to each glyph in the string, not to the string as a whole
     - "horizontal gradient (string)" - horizontal gradient between two or more colors; the gradient is applied to the string as a whole
     - "vertical gradient (string)" - vertical gradient between two or more colors; the gradient is applied to the string as a whole
+
+  - supports underline functionality; to use it, set UnderlineColor, UnderlineThickness and UnderlinePosition variables; to disable it, set UnderlineColor to NULL
 
   - the size of the characters is specified in pixels - the size specifies the line height
 
