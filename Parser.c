@@ -1,25 +1,6 @@
+#include "Parser.h"
+
 //supported tables - cmap, glyf, head, hhea, hmtx, kern, loca, maxp and OS/2
-
-//(PUBLIC)
-
-const short CMAP_TABLE = 24;
-const short GLYF_TABLE = 25;
-const short HEAD_TABLE = 26;
-const short HHEA_TABLE = 27;
-const short HMTX_TABLE = 28;
-const short LOCA_TABLE = 29;
-const short KERN_TABLE = 30;
-const short MAXP_TABLE = 31;
-const short OS2_TABLE = 32;
-const short VHEA_TABLE = 33;
-const short CMAP_SUBTABLE_FORMAT0 = 50;
-const short CMAP_SUBTABLE_FORMAT4 = 51;
-const short CMAP_SUBTABLE_FORMAT6 = 52;
-const short CMAP_SUBTABLE_FORMAT12 = 53;
-const short KERN_SUBTABLE_FORMAT0 = 54;
-const short EMPTY_GLYPH = 100;
-const short SIMPLE_GLYPH = 101;
-const short COMPOSITE_GLYPH = 102;
 
 //(PRIVATE)
 bool Is(const void* _derived, int _typeIdentifier)
@@ -122,16 +103,6 @@ CMAP_Subtable_Format12* P_CMAP_Subtable_Format12()
     return table;
 }
 
-//(PUBLIC)
-struct KerningPair
-{
-    unsigned short Left;
-    unsigned short Right;
-    short Value;
-};
-
-typedef struct KerningPair KerningPair;
-
 //(PRIVATE)
 struct KERN_Subtable_Format0
 {
@@ -155,17 +126,6 @@ KERN_Subtable_Format0* P_KERN_Subtable_Format0()
     return table;
 }
 
-//(PUBLIC)
-struct CMAP_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    unsigned short Version;
-    unsigned short NumberOfSubtables;
-    void** Subtables;
-};
-
-typedef struct CMAP_Table CMAP_Table;
-
 CMAP_Table* P_CMAP_Table()
 {
     CMAP_Table* table = malloc(sizeof(CMAP_Table));
@@ -173,7 +133,6 @@ CMAP_Table* P_CMAP_Table()
     return table;
 }
 
-//(PUBLIC)
 struct EmptyGlyph
 {
     unsigned int Typograph; //(INTERNAL-CONSTANT)
@@ -188,48 +147,12 @@ EmptyGlyph* P_EmptyGlyph()
     return glyph;
 }
 
-//(PUBLIC)
-struct SimpleGlyph
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    short NumberOfContours;
-    short MinX;
-    short MinY;
-    short MaxX;
-    short MaxY;
-    unsigned short* EndPointsOfContours; //indexes specifying the last point of every contour
-    unsigned char* Flags;
-    short* X_Coordinates;
-    short* Y_Coordinates;
-    unsigned short NumberOfPoints; //= EndPointsOfContours[NumberOfContours - 1] + 1
-};
-
-typedef struct SimpleGlyph SimpleGlyph;
-
 SimpleGlyph* P_SimpleGlyph()
 {
     SimpleGlyph* glyph = malloc(sizeof(SimpleGlyph));
     glyph->Typograph = 0b01100101000000000000000000000000;
     return glyph;
 }
-
-//(PUBLIC)
-//representing a reference to a simple or composite glyph
-struct GlyphComponent
-{
-    unsigned short Flags;
-    unsigned short GlyphIndex;
-    int Argument1;
-    int Argument2;
-    int ArgumentMode; /*
-| 1 :: offset relative to own coordinates
-| 0 :: Argument1 is an index to a point in the container glyph, and Argument2 is an index to a point in this component */
-    //Flags:Scale == true -> [0] | Flags:X_AND_Y_SCALE == true -> [0], [1] | Flags:TWO_BY_TWO_TRANSFORMATION -> [0], [1], [2], [3]
-    unsigned short Scale[4];
-    bool UseMetrics; //if this is set, then the specified in this glyph advance-width and left-side-bearing are used for the composite
-};
-
-typedef struct GlyphComponent GlyphComponent;
 
 GlyphComponent* P_GlyphComponent()
 {
@@ -242,41 +165,12 @@ GlyphComponent* P_GlyphComponent()
     return component;
 }
 
-//(PUBLIC)
-struct CompositeGlyph
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    short MinX;
-    short MinY;
-    short MaxX;
-    short MaxY;
-    GlyphComponent** Components; //[GlyphComponent]
-    unsigned short NumberOfComponents;
-};
-
-typedef struct CompositeGlyph CompositeGlyph;
-
 CompositeGlyph* P_CompositeGlyph()
 {
     CompositeGlyph* glyph = malloc(sizeof(CompositeGlyph));
     glyph->Typograph = 0b01100110000000000000000000000000;
     return glyph;
 }
-
-//(PUBLIC)
-struct GLYF_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    short NumberOfContours;
-    void** Glyphs; //[SimpleGlyph & CompositeGlyph]
-    short NumberOfGlyphs;
-    int X_Min;
-    int Y_Min;
-    int X_Max;
-    int Y_Max;
-};
-
-typedef struct GLYF_Table GLYF_Table;
 
 GLYF_Table* P_GLYF_Table()
 {
@@ -285,61 +179,12 @@ GLYF_Table* P_GLYF_Table()
     return table;
 }
 
-//(PUBLIC)
-struct HEAD_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    unsigned short MajorVersion;
-    unsigned short MinorVersion;
-    unsigned short FontMajorRevision;
-    unsigned short FontMinorRevision;
-    unsigned int ChecksumAdjacement;
-    unsigned int MagicNumber;
-    unsigned short Flags;
-    unsigned short UnitsPerEm;
-    long long Created;
-    long long Modified;
-    short MinX;
-    short MinY;
-    short MaxX;
-    short MaxY;
-    unsigned short MacStyle;
-    unsigned short LowestRecPPEM;
-    short FontDirectionHint;
-    short IndexToLocationFormat;
-    short GlyphDataFormat;
-};
-
-typedef struct HEAD_Table HEAD_Table;
-
 HEAD_Table* P_HEAD_Table()
 {
     HEAD_Table* table = malloc(sizeof(HEAD_Table));
     table->Typograph = 0b00011010000000000000000000000000;
     return table;
 }
-
-//(PUBLIC)
-struct HHEA_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    unsigned short MajorVersion;
-    unsigned short MinorVersion;
-    short Ascender;
-    short Descender;
-    short LineGap;
-    unsigned short AdvancedWidthMax;
-    short MinLeftSideBearing;
-    short MinRightSideBearing;
-    short X_MaxExtent;
-    short CaretSlopeRise;
-    short CaretSlopeRun;
-    short CaretOffset;
-    short MetricDataFormat;
-    unsigned short NumberOfHorizontalMetrics;
-};
-
-typedef struct HHEA_Table HHEA_Table;
 
 HHEA_Table* P_HHEA_Table()
 {
@@ -348,31 +193,12 @@ HHEA_Table* P_HHEA_Table()
     return table;
 }
 
-//(PUBLIC)
-struct VHEA_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-};
-
-typedef struct VHEA_Table VHEA_Table;
-
 VHEA_Table* P_VHEA_Table()
 {
     VHEA_Table* table = malloc(sizeof(VHEA_Table));
     table->Typograph = 0b00100001000000000000000000000000;
     return table;
 }
-
-//(PUBLIC)
-struct KERN_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    unsigned short Version;
-    unsigned short NumberOfSubtables;
-    void** Subtables;
-};
-
-typedef struct KERN_Table KERN_Table;
 
 KERN_Table* P_KERN_Table()
 {
@@ -381,41 +207,12 @@ KERN_Table* P_KERN_Table()
     return table;
 }
 
-//(PUBLIC)
-struct LongHorizontalMetric
-{
-    unsigned short AdvanceWidth;
-    short LeftSideBearing;
-};
-
-typedef struct LongHorizontalMetric LongHorizontalMetric;
-
-//(PUBLIC)
-struct HMTX_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    LongHorizontalMetric* HorizontalMetrics;
-    short* LeftSideBearings;
-};
-
-typedef struct HMTX_Table HMTX_Table;
-
 HMTX_Table* P_HMTX_Table()
 {
     HMTX_Table* table = malloc(sizeof(HMTX_Table));
     table->Typograph = 0b00011100000000000000000000000000;
     return table;
 }
-
-//(PUBLIC)
-struct LOCA_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    void* Offsets; //[uint16] | [uint32]
-    int ArrayType; //0 :: [uint16] | 1 :: [uint32]
-};
-
-typedef struct LOCA_Table LOCA_Table;
 
 LOCA_Table* P_LOCA_Table()
 {
@@ -424,30 +221,6 @@ LOCA_Table* P_LOCA_Table()
     return table;
 }
 
-//(PUBLIC)
-struct MAXP_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    unsigned short MajorVersion;
-    unsigned short MinorVersion;
-    unsigned short NumberOfGlyphs;
-    unsigned short MaxPoints;
-    unsigned short MaxContours;
-    unsigned short MaxCompositePoints;
-    unsigned short MaxCompositeContours;
-    unsigned short MaxZones;
-    unsigned short MaxTwilightPoints;
-    unsigned short MaxStorage;
-    unsigned short MaxFunctionDefinitions;
-    unsigned short MaxInstructionDefinitions;
-    unsigned short MaxStackElements;
-    unsigned short MaxSizeOfInstructions;
-    unsigned short MaxComponentElements;
-    unsigned short MaxComponentDepth;
-};
-
-typedef struct MAXP_Table MAXP_Table;
-
 MAXP_Table* P_MAXP_Table()
 {
     MAXP_Table* table = malloc(sizeof(MAXP_Table));
@@ -455,69 +228,12 @@ MAXP_Table* P_MAXP_Table()
     return table;
 }
 
-//(PUBLIC)
-struct OS2_Table
-{
-    unsigned int Typograph; //(INTERNAL-CONSTANT)
-    unsigned short Version;
-    short X_AverageCharacterWidth;
-    unsigned short US_WeightClass;
-    unsigned short US_WidthClass;
-    unsigned short FS_Type;
-    short Y_SubscriptXSize;
-    short Y_SubscriptYSize;
-    short Y_SubscriptXOffset;
-    short Y_SubscriptYOffset;
-    short Y_SuperscriptXSize;
-    short Y_SuperscriptYSize;
-    short Y_SuperscriptXOffset;
-    short Y_SuperscriptYOffset;
-    short Y_StrikeoutSize;
-    short Y_StrikeoutPosition;
-    short S_FamilyClass;
-    unsigned char Panose[10];
-    unsigned int UL_UnicodeRange[4];
-    unsigned char VendorID[4];
-    unsigned short FS_Selection;
-    unsigned short US_FirstCharIndex;
-    unsigned short US_LastCharIndex;
-    short S_TypographicAscender;
-    short S_TypographicDescender;
-    short S_TypographicLineGap;
-    unsigned short US_WinAscent;
-    unsigned short US_WinDescent;
-    //additional fields for version 1
-    unsigned int UL_CodePageRange1; //bits 0..31
-    unsigned int UL_CodePageRange2; //bits 32..63
-    //additional fields for version 2 (versions 3 and 4 have the same fields)
-    short SX_Height;
-    short S_CapHeight;
-    unsigned short US_DefaultChar;
-    unsigned short US_BreakChar;
-    unsigned short US_MaxContext;
-    //additional fields for version 5
-    unsigned short US_LowerOpticalPointSize;
-    unsigned short US_UpperOpticalPointSize;
-};
-
-typedef struct OS2_Table OS2_Table;
-
 OS2_Table* P_OS2_Table()
 {
     OS2_Table* table = malloc(sizeof(OS2_Table));
     table->Typograph = 0b00100000000000000000000000000000;
     return table;
 }
-
-//(PUBLIC)
-struct Font
-{
-    int SFNT_VERSION;
-    int NumberOfTables;
-    void** Tables;
-};
-
-typedef struct Font Font;
 
 //_index >= 0 || _index <= 31 ->
 bool GetBit(unsigned int _number, int _index)
@@ -845,7 +561,6 @@ void* ExtractCompositeGlyph(FILE* _file)
     return (void*) glyph;
 }
 
-//(PUBLIC)
 void* GetTable(const Font* _font, short _identifier)
 {
     for (int i = 0; i < _font->NumberOfTables; i++)
@@ -859,7 +574,6 @@ void* GetTable(const Font* _font, short _identifier)
     return NULL;
 }
 
-//(PUBLIC)
 //_file is a valid file object ->
 Font* ParseFont(FILE* _file)
 {
@@ -1231,8 +945,8 @@ Font* ParseFont(FILE* _file)
         {
             HMTX_Table* table = P_HMTX_Table();
 
-            unsigned short numberOfHorizontalMetrics = ((HHEA_Table*) GetTable(font, HHEA_TABLE))->NumberOfHorizontalMetrics;
-            unsigned short numberOfGlyphs = ((MAXP_Table*) GetTable(font, MAXP_TABLE))->NumberOfGlyphs;
+            unsigned short numberOfHorizontalMetrics = ((HHEA_Table*) GetTable(font, HHEA_TABLE_T))->NumberOfHorizontalMetrics;
+            unsigned short numberOfGlyphs = ((MAXP_Table*) GetTable(font, MAXP_TABLE_T))->NumberOfGlyphs;
 
             table->HorizontalMetrics = malloc(sizeof(LongHorizontalMetric) * numberOfGlyphs);
             table->LeftSideBearings = malloc(sizeof(short) * (numberOfGlyphs - numberOfHorizontalMetrics));
@@ -1261,8 +975,8 @@ Font* ParseFont(FILE* _file)
         }
         else if (tagCharacter1 == 'l' && tagCharacter2 == 'o' && tagCharacter3 == 'c' && tagCharacter4 == 'a')
         {
-            short tableType = ((HEAD_Table*)GetTable(font, HEAD_TABLE))->IndexToLocationFormat;
-            unsigned short numberOfGlyphs = ((MAXP_Table*)GetTable(font, MAXP_TABLE))->NumberOfGlyphs;
+            short tableType = ((HEAD_Table*)GetTable(font, HEAD_TABLE_T))->IndexToLocationFormat;
+            unsigned short numberOfGlyphs = ((MAXP_Table*)GetTable(font, MAXP_TABLE_T))->NumberOfGlyphs;
 
             //'short' version
             if (tableType == 0)
@@ -1326,7 +1040,7 @@ Font* ParseFont(FILE* _file)
         {
             GLYF_Table* table = P_GLYF_Table();
 
-            unsigned short numberOfGlyphs = ((MAXP_Table*)GetTable(font, MAXP_TABLE))->NumberOfGlyphs;
+            unsigned short numberOfGlyphs = ((MAXP_Table*)GetTable(font, MAXP_TABLE_T))->NumberOfGlyphs;
 
             table->NumberOfGlyphs = numberOfGlyphs;
             table->Glyphs = malloc(sizeof(void*) * numberOfGlyphs);
@@ -1393,7 +1107,7 @@ Font* ParseFont(FILE* _file)
 //(the glyph corresponding to the specified codepoint) does not exist in the file => -1
 int GetGlyphIndex(const Font* _font, int _codepoint)
 {
-    CMAP_Table* cmap = (CMAP_Table*) GetTable(_font, CMAP_TABLE);
+    CMAP_Table* cmap = (CMAP_Table*) GetTable(_font, CMAP_TABLE_T);
 
     for (int i = cmap->NumberOfSubtables - 1; i > -1; i--)
     {
@@ -1401,7 +1115,7 @@ int GetGlyphIndex(const Font* _font, int _codepoint)
         {
             continue;
         }
-        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT12))
+        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT12_T))
         {
             CMAP_Subtable_Format12* subtable = (CMAP_Subtable_Format12*) cmap->Subtables[i];
 
@@ -1417,7 +1131,7 @@ int GetGlyphIndex(const Font* _font, int _codepoint)
 
             return -1;
         }
-        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT6))
+        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT6_T))
         {
             CMAP_Subtable_Format6* subtable = (CMAP_Subtable_Format6*) cmap->Subtables[i];
 
@@ -1432,7 +1146,7 @@ int GetGlyphIndex(const Font* _font, int _codepoint)
                 return subtable->GlyphIndexArray[_codepoint - subtable->FirstCode];
             }
         }
-        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT4))
+        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT4_T))
         {
             CMAP_Subtable_Format4* subtable = (CMAP_Subtable_Format4*) cmap->Subtables[i];
 
@@ -1479,7 +1193,7 @@ int GetGlyphIndex(const Font* _font, int _codepoint)
                 }
             }
         }
-        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT0) && _codepoint < 256)
+        else if (Is(cmap->Subtables[i], CMAP_SUBTABLE_FORMAT0_T) && _codepoint < 256)
         {
             CMAP_Subtable_Format0* subtable = (CMAP_Subtable_Format0*) cmap->Subtables[i];
             return subtable->GlyphIndexArray[_codepoint];
@@ -1494,12 +1208,11 @@ int GetGlyphIndex(const Font* _font, int _codepoint)
     return -1;
 }
 
-//(PUBLIC)
 //the codepoint does not exist in the file => NULL
 //_characterIndex < 0 :: index in the table glyf | _characterIndex >= 0 :: codepoint
 void* GetGlyph(const Font* _font, int _characterIndex)
 {
-    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
+    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE_T);
 
     int glyphIndex;
 
@@ -1522,7 +1235,6 @@ void* GetGlyph(const Font* _font, int _characterIndex)
     }
 }
 
-//(PUBLIC)
 //the return value is in Funit-s
 /* _characterIndex is a Unicode codepoint if it's a positive value, and glyph index (within the given font file) if it's a negative value;
    the function is non-validating - if _characterIndex is a Unicode codepoint, then it must be a valid Unicode codepoint and if
@@ -1530,7 +1242,7 @@ void* GetGlyph(const Font* _font, int _characterIndex)
 //the specified character (codepoint) exists in the file  ->
 int GetLeftSideBearing(const Font* _font, int _characterCode)
 {
-    HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE);
+    HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE_T);
 
     if (_characterCode < 0)
     {
@@ -1542,22 +1254,21 @@ int GetLeftSideBearing(const Font* _font, int _characterCode)
     }
 }
 
-//(PUBLIC)
 //the return value is in Funit-s
 //the specified character (codepoint) exists in the glyph ->
 int GetRightSideBearing(const Font* _font, int _codepoint)
 {
-    HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE);
-    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
+    HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE_T);
+    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE_T);
     int glyphIndex = GetGlyphIndex(_font, _codepoint);
     int advanceWidth = hmtx->HorizontalMetrics[glyphIndex].AdvanceWidth;
     void* glyph = glyf->Glyphs[glyphIndex];
 
-    if (Is(glyph, EMPTY_GLYPH))
+    if (Is(glyph, EMPTY_GLYPH_T))
     {
         return 0;
     }
-    else if (Is(glyph, SIMPLE_GLYPH))
+    else if (Is(glyph, SIMPLE_GLYPH_T))
     {
         SimpleGlyph* glyph_ = (SimpleGlyph*) glyph;
 
@@ -1585,23 +1296,22 @@ int GetRightSideBearing(const Font* _font, int _codepoint)
     }
 }
 
-//(PUBLIC)
 //returns the distance (in Funit-s) from the (baseline) to (the highest graphemic point of the character)
 //returns negative value if the highest graphemic point of the character is below the baseline
 //returns INT_MAX if the _codepoint is empty symbol
 //_fontSize is specified in pixels
 double GetCodepointAscent(const Font* _font, int _codepoint)
 {
-    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
-    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
+    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE_T);
+    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE_T);
 
     void* glyph = GetGlyph(_font, _codepoint);
 
-    if (Is(glyph, EMPTY_GLYPH))
+    if (Is(glyph, EMPTY_GLYPH_T))
     {
         return INT_MAX;
     }
-    else if (Is(glyph, SIMPLE_GLYPH))
+    else if (Is(glyph, SIMPLE_GLYPH_T))
     {
         return ((SimpleGlyph*) glyph)->MaxY;
     }
@@ -1611,23 +1321,22 @@ double GetCodepointAscent(const Font* _font, int _codepoint)
     }
 }
 
-//(PUBLIC)
 //returns the distance (in Funit-s) from the (baseline) to (the lowest graphemic point of the string)
 //returns positive value if the lowest graphemic point of the string is above the baseline
 //returns INT_MAX if the _codepoint represents an empty glyph
 //_fontSize is specified in pixels
 double GetCodepointDescent(const Font* _font, int _codepoint)
 {
-    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
-    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
+    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE_T);
+    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE_T);
 
     void* glyph = GetGlyph(_font, _codepoint);
 
-    if (Is(glyph, EMPTY_GLYPH))
+    if (Is(glyph, EMPTY_GLYPH_T))
     {
         return INT_MAX;
     }
-    else if (Is(glyph, SIMPLE_GLYPH))
+    else if (Is(glyph, SIMPLE_GLYPH_T))
     {
         return ((SimpleGlyph*) glyph)->MinY;
     }
@@ -1637,15 +1346,14 @@ double GetCodepointDescent(const Font* _font, int _codepoint)
     }
 }
 
-//(PUBLIC)
 //returns the distance (in Funit-s) from the (baseline) to (the highest graphemic point of the string)
 //returns negative value if the highest graphemic point of the string is below the baseline
 //_fontSize is specified in pixels
 //_stringLength is in characters
 double GetAscent(const Font* _font, const wchar_t* _string, int _stringLength)
 {
-    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
-    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
+    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE_T);
+    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE_T);
 
     int maxY = -1;
 
@@ -1653,11 +1361,11 @@ double GetAscent(const Font* _font, const wchar_t* _string, int _stringLength)
     {
         void* glyph = GetGlyph(_font, _string[i]);
 
-        if (Is(glyph, EMPTY_GLYPH))
+        if (Is(glyph, EMPTY_GLYPH_T))
         {
             continue;
         }
-        else if (Is(glyph, SIMPLE_GLYPH))
+        else if (Is(glyph, SIMPLE_GLYPH_T))
         {
             SimpleGlyph* glyph_ = (SimpleGlyph*) glyph;
 
@@ -1680,15 +1388,14 @@ double GetAscent(const Font* _font, const wchar_t* _string, int _stringLength)
     return maxY;
 }
 
-//(PUBLIC)
 //returns the distance (in Funit-s) from the (baseline) to (the lowest graphemic point of the string)
 //returns positive value if the lowest graphemic point of the string is above the baseline
 //_fontSize is specified in pixels
 //_stringLength is in characters
 double GetDescent(const Font* _font, const wchar_t* _string, int _stringLength)
 {
-    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE);
-    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE);
+    HEAD_Table* head = (HEAD_Table*) GetTable(_font, HEAD_TABLE_T);
+    GLYF_Table* glyf = (GLYF_Table*) GetTable(_font, GLYF_TABLE_T);
 
     int minY = -1;
 
@@ -1696,11 +1403,11 @@ double GetDescent(const Font* _font, const wchar_t* _string, int _stringLength)
     {
         void* glyph = GetGlyph(_font, _string[i]);
 
-        if (Is(glyph, EMPTY_GLYPH))
+        if (Is(glyph, EMPTY_GLYPH_T))
         {
             continue;
         }
-        else if (Is(glyph, SIMPLE_GLYPH))
+        else if (Is(glyph, SIMPLE_GLYPH_T))
         {
             SimpleGlyph* glyph_ = (SimpleGlyph*) glyph;
 
@@ -1723,7 +1430,6 @@ double GetDescent(const Font* _font, const wchar_t* _string, int _stringLength)
     return minY;
 }
 
-//(PUBLIC)
 //the return values is in Funit-s
 /* _characterIndex is a Unicode codepoint if it's a positive value, and glyph index (within the given font file) if it's a negative value;
    the function is non-validating - if _characterIndex is a Unicode codepoint, then it must be a valid Unicode codepoint and if
@@ -1731,7 +1437,7 @@ double GetDescent(const Font* _font, const wchar_t* _string, int _stringLength)
 //the specified character (codepoint) exists in the file ->
 int GetAdvanceWidth(const Font* _font, int _characterCode)
 {
-    HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE);
+    HMTX_Table* hmtx = (HMTX_Table*) GetTable(_font, HMTX_TABLE_T);
 
     if (_characterCode < 0)
     {
@@ -1743,13 +1449,12 @@ int GetAdvanceWidth(const Font* _font, int _characterCode)
     }
 }
 
-//(PUBLIC)
 //the return value is in Funit-s
 //the specified kerning-pair does not exist in the file => INT_MIN
 //the specified character (codepoint) does not exist in the file ->
 int GetKerning(const Font* _font, int _codepoint1, int _codepoint2)
 {
-    KERN_Table* kern = (KERN_Table*) GetTable(_font, KERN_TABLE);
+    KERN_Table* kern = (KERN_Table*) GetTable(_font, KERN_TABLE_T);
 
     if (kern == NULL)
     {
@@ -1773,30 +1478,28 @@ int GetKerning(const Font* _font, int _codepoint1, int _codepoint2)
     return INT_MIN;
 }
 
-//(PUBLIC)
 bool ContainsGlyph(const Font* _font, int _codepoint)
 {
     return GetGlyphIndex(_font, _codepoint) != -1;
 }
 
-//(PUBLIC)
 void ReleaseFont(Font* _font)
 {
    for (int i = 0; i < _font->NumberOfTables; i++)
    {
        if (_font->Tables[i] != NULL)
        {
-           if (Is(_font->Tables[i], CMAP_TABLE))
+           if (Is(_font->Tables[i], CMAP_TABLE_T))
            {
                CMAP_Table* table = (CMAP_Table*) _font->Tables[i];
 
                for (int i = 0; i < table->NumberOfSubtables; i++)
                {
-                   if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT0))
+                   if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT0_T))
                    {
                        free(table->Subtables[i]);
                    }
-                   else if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT4))
+                   else if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT4_T))
                    {
                        CMAP_Subtable_Format4* subtable = (CMAP_Subtable_Format4*) table->Subtables[i];
                        free(subtable->EndCode);
@@ -1806,12 +1509,12 @@ void ReleaseFont(Font* _font)
                        free(subtable->GlyphIndexArray);
                        free(table->Subtables[i]);
                    }
-                   else if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT6))
+                   else if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT6_T))
                    {
                        free(((CMAP_Subtable_Format6*) table->Subtables[i])->GlyphIndexArray);
                        free(table->Subtables[i]);
                    }
-                   else if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT12))
+                   else if (Is(table->Subtables[i], CMAP_SUBTABLE_FORMAT12_T))
                    {
                        CMAP_Subtable_Format12* subtable = (CMAP_Subtable_Format12*) table->Subtables[i];
 
@@ -1828,17 +1531,17 @@ void ReleaseFont(Font* _font)
                free(table->Subtables);
                free(_font->Tables[i]);
            }
-           else if (Is(_font->Tables[i], GLYF_TABLE))
+           else if (Is(_font->Tables[i], GLYF_TABLE_T))
            {
                GLYF_Table* table = (GLYF_Table*) _font->Tables[i];
 
                for (int i = 0; i < table->NumberOfGlyphs; i++)
                {
-                   if (Is(table->Glyphs[i], EMPTY_GLYPH))
+                   if (Is(table->Glyphs[i], EMPTY_GLYPH_T))
                    {
                       free(table->Glyphs[i]);
                    }
-                   else if (Is(table->Glyphs[i], SIMPLE_GLYPH))
+                   else if (Is(table->Glyphs[i], SIMPLE_GLYPH_T))
                    {
                        SimpleGlyph* glyph = (SimpleGlyph*) table->Glyphs[i];
                        free(glyph->EndPointsOfContours);
@@ -1847,7 +1550,7 @@ void ReleaseFont(Font* _font)
                        free(glyph->Flags);
                        free(table->Glyphs[i]);
                    }
-                   else if (Is(table->Glyphs[i], COMPOSITE_GLYPH))
+                   else if (Is(table->Glyphs[i], COMPOSITE_GLYPH_T))
                    {
                        CompositeGlyph* glyph = (CompositeGlyph*) table->Glyphs[i];
 
@@ -1864,24 +1567,24 @@ void ReleaseFont(Font* _font)
                free(table->Glyphs);
                free(_font->Tables[i]);
            }
-           else if (Is(_font->Tables[i], HEAD_TABLE))
+           else if (Is(_font->Tables[i], HEAD_TABLE_T))
            {
                free(_font->Tables[i]);
            }
-           else if (Is(_font->Tables[i], HMTX_TABLE))
+           else if (Is(_font->Tables[i], HMTX_TABLE_T))
            {
                HMTX_Table* table = (HMTX_Table*) _font->Tables[i];
                free(table->HorizontalMetrics);
                free(table->LeftSideBearings);
                free(_font->Tables[i]);
            }
-           else if (Is(_font->Tables[i], KERN_TABLE))
+           else if (Is(_font->Tables[i], KERN_TABLE_T))
            {
                KERN_Table* table = (KERN_Table*) _font->Tables[i];
 
                for (int i = 0; i < table->NumberOfSubtables; i++)
                {
-                   if (Is(table->Subtables[i], KERN_SUBTABLE_FORMAT0))
+                   if (Is(table->Subtables[i], KERN_SUBTABLE_FORMAT0_T))
                    {
                        free(((KERN_Subtable_Format0*) table->Subtables[i])->Pairs);
                        free(table->Subtables[i]);
@@ -1892,7 +1595,7 @@ void ReleaseFont(Font* _font)
                free(table->Subtables);
                free(_font->Tables[i]);
            }
-           else if (Is(_font->Tables[i], LOCA_TABLE))
+           else if (Is(_font->Tables[i], LOCA_TABLE_T))
            {
                free(((LOCA_Table*) _font->Tables[i])->Offsets);
                free(_font->Tables[i]);
