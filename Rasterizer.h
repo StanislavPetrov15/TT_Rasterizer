@@ -3,9 +3,6 @@
 
 #include "Parser.h"
 
-#define TT_EXTERNAL_CALL 0
-#define TT_INTERNAL_CALL 1
-
 #define C_ALICE_BLUE &(tt_rgba){ 240, 248, 255, 0 }
 #define C_ANTIQUE_WHITE &(tt_rgba){ 250, 235, 215, 0 }
 #define C_AQUA &(tt_rgba){ 0, 255, 255, 0 }
@@ -201,19 +198,6 @@ enum StringColorizationMode
 };
 
 typedef enum StringColorizationMode StringColorizationMode;
-
-enum EffectMode
-{
-    INSTANT_COLOR_TRANSITION,
-    GRADIENT_COLOR_TRANSITION,
-    TRANSLATION,
-    SCALING,
-    HORIZONTAL_PROGRESSIVE_VISUALIZATION,
-    VERTICAL_PROGRESSIVE_VISUALIZATION,
-    NONE
-};
-
-typedef enum EffectMode EffectMode;
 
 struct tt_rgba
 {
